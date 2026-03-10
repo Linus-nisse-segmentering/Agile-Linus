@@ -1,0 +1,17 @@
+AllCops:
+  TargetRubyVersion: 3.3.10 # Match your Ruby version
+  Exclude:
+    - 'vendor/**/*'
+    - 'db/schema.rb'
+    - 'bin/*'
+
+# Sinatra often uses long blocks for routes (get, post, etc.)
+# You might want to disable or increase this limit.
+Metrics/BlockLength:
+  Exclude:
+    - 'app.rb'
+    - 'routes/**/*.rb'
+
+# Many Sinatra apps use 'style' choices that differ from Rails
+Style/FrozenStringLiteralComment:
+  Enabled: false

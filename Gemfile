@@ -17,7 +17,11 @@ gem 'sinatra-contrib', '~> 4.0'
 gem 'puma', '~> 6.4'
 
 group :development do
-  gem 'rerun', '~> 0.14'  # Auto-reload on file changes
+  gem 'rerun', '~> 0.14' # Auto-reload on file changes
 end
 
-gem "rackup", "~> 2.3"
+gem 'rackup', '~> 2.3'
+
+group :development, :test do
+  gem 'rubocop', require: false
+end
