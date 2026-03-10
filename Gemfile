@@ -21,3 +21,7 @@ group :development do
 end
 
 gem "rackup", "~> 2.3"
+
+group :development, :test do
+  gem 'rubocop', require: false
+end
