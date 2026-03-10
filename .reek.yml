@@ -1,0 +1,21 @@
+### .reek.yaml
+
+# Ignore specific smells that are common in Sinatra
+detectors:
+  # Sinatra routes often have many arguments or local variables
+  TooManyStatements:
+    exclude:
+      - "app.rb"
+  
+  # If you use 'get' or 'post' blocks, they might trigger this
+  NestedIterators:
+    max_allowed_nesting: 2
+
+  # Sinatra helpers sometimes don't use 'self'
+  UtilityFunction:
+    public_methods_only: true
+
+directories:
+  "db/migrate":
+    FeatureEnvy:
+      enabled: false
