@@ -18,6 +18,8 @@ gem 'puma', '~> 6.4'
 
 group :development do
   gem 'rerun', '~> 0.14'  # Auto-reload on file changes
+  gem 'rubocop', '~> 1.70', require: false
+  gem 'rubocop-performance', require: false
 end
 
 gem "rackup", "~> 2.3"

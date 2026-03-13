@@ -1,0 +1,48 @@
+require:
+  - rubocop-performance
+
+AllCops:
+  NewCops: enable
+  TargetRubyVersion: 2.7
+  Exclude:
+    - 'vendor/**/*'
+    - 'db/setup.rb'
+
+# Line length - 120 is reasonable for a small project
+Layout/LineLength:
+  Max: 120
+
+# Allow longer methods in route handlers
+Metrics/MethodLength:
+  Max: 20
+
+# Allow larger blocks for route blocks
+Metrics/BlockLength:
+  Max: 30
+
+# Allow slightly higher complexity given Sinatra's DSL style
+Metrics/AbcSize:
+  Max: 25
+
+# Sinatra uses top-level methods/DSL - relax module length
+Metrics/ClassLength:
+  Max: 200
+
+# Frozen string literal comment is already in app.rb
+Style/FrozenStringLiteralComment:
+  Enabled: true
+  EnforcedStyle: always
+
+# Allow double-quoted strings (common preference)
+Style/StringLiterals:
+  EnforcedStyle: single_quotes
+
+# Keep trailing commas consistent
+Style/TrailingCommaInArgList:
+  EnforcedStyleForMultiline: comma
+
+Style/TrailingCommaInArrayLiteral:
+  EnforcedStyleForMultiline: comma
+
+Style/TrailingCommaInHashLiteral:
+  EnforcedStyleForMultiline: comma
