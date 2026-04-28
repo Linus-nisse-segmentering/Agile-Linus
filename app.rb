@@ -7,7 +7,7 @@ require 'sqlite3'
 require 'json'
 
 # Configure Sinatra
-set :port, 3000
+set :port, 1010
 set :bind, '0.0.0.0'
 set :public_folder, 'static'
 
@@ -15,7 +15,7 @@ set :public_folder, 'static'
 DATABASE = 'app.db'
 
 # Helper method to get database connection
-def db_connection
+def get_db_connection
   db = SQLite3::Database.new(DATABASE)
   db.results_as_hash = true
   db.execute('PRAGMA foreign_keys = ON')
@@ -71,7 +71,7 @@ get '/' do
       'SELECT t.id, t.name FROM tags t
        JOIN recipe_tags rt ON t.id = rt.tag_id
        WHERE rt.recipe_id = ?',
-      recipe['id'],
+      recipe['id']
     )
 
     {
@@ -80,7 +80,7 @@ get '/' do
       'time_minutes' => recipe['time_minutes'],
       'price' => recipe['price'],
       'link' => recipe['link'] || '',
-      'tags' => rows_to_hashes(tags),
+      'tags' => rows_to_hashes(tags)
     }
   end
 
@@ -96,21 +96,21 @@ get '/recipes/:id/' do
 
   recipe = db.get_first_row(
     'SELECT id, title, time_minutes, price, link, description FROM recipes WHERE id = ?',
-    id,
+    id
   )
 
   ingredients = db.execute(
     'SELECT i.id, i.name, ri.amount, ri.unit FROM ingredients i
      JOIN recipe_ingredients ri ON i.id = ri.ingredient_id
      WHERE ri.recipe_id = ?',
-    id,
+    id
   )
 
   tags = db.execute(
     'SELECT t.id, t.name FROM tags t
      JOIN recipe_tags rt ON t.id = rt.tag_id
      WHERE rt.recipe_id = ?',
-    id,
+    id
   )
 
   db.close
@@ -123,7 +123,7 @@ get '/recipes/:id/' do
     'link' => recipe['link'] || '',
     'description' => recipe['description'] || '',
     'ingredients' => rows_to_hashes(ingredients),
-    'tags' => rows_to_hashes(tags),
+    'tags' => rows_to_hashes(tags)
   }
 
   erb :recipe_detail, locals: { recipe: recipe_data }
@@ -199,7 +199,7 @@ get '/api' do
          ingredients_url: 'http://localhost:3000/api/recipe/ingredients/{?assigned_only}',
          ingredient_url: 'http://localhost:3000/api/recipe/ingredients/{id}/',
          tags_url: 'http://localhost:3000/api/recipe/tags/{?assigned_only}',
-         tag_url: 'http://localhost:3000/api/recipe/tags/{id}/',
+         tag_url: 'http://localhost:3000/api/recipe/tags/{id}/'
        })
 end
 
@@ -223,7 +223,7 @@ post '/api/user/create/' do
   status 201
   json({
          email: data['email'],
-         name: data['name'],
+         name: data['name']
        })
 end
 
@@ -232,7 +232,7 @@ get '/api/user/me/' do
   puts 'Route invoked: GET /api/user/me/'
   json({
          email: 'user@example.com',
-         name: 'Example User',
+         name: 'Example User'
        })
 end
 
@@ -243,7 +243,7 @@ put '/api/user/me/' do
 
   json({
          email: data['email'],
-         name: data['name'],
+         name: data['name']
        })
 end
 
@@ -254,7 +254,7 @@ patch '/api/user/me/' do
 
   response = {
     email: data['email'] || 'user@example.com',
-    name: data['name'] || 'Example User',
+    name: data['name'] || 'Example User'
   }
 
   json(response)
@@ -267,7 +267,7 @@ post '/api/user/token/' do
 
   json({
          email: data['email'],
-         password: data['password'],
+         password: data['password']
        })
 end
 
@@ -287,14 +287,14 @@ get '/api/recipe/recipes/' do
       'SELECT i.id, i.name, ri.amount, ri.unit FROM ingredients i
        JOIN recipe_ingredients ri ON i.id = ri.ingredient_id
        WHERE ri.recipe_id = ?',
-      recipe['id'],
+      recipe['id']
     )
 
     tags = db.execute(
       'SELECT t.id, t.name FROM tags t
        JOIN recipe_tags rt ON t.id = rt.tag_id
        WHERE rt.recipe_id = ?',
-      recipe['id'],
+      recipe['id']
     )
 
     {
@@ -304,7 +304,7 @@ get '/api/recipe/recipes/' do
       'price' => recipe['price'],
       'link' => recipe['link'] || '',
       'ingredients' => rows_to_hashes(ingredients),
-      'tags' => rows_to_hashes(tags),
+      'tags' => rows_to_hashes(tags)
     }
   end
 
@@ -326,7 +326,7 @@ post '/api/recipe/recipes/' do
          link: data['link'] || '',
          tags: data['tags'] || [],
          ingredients: data['ingredients'] || [],
-         description: data['description'] || '',
+         description: data['description'] || ''
        })
 end
 
@@ -339,21 +339,21 @@ get '/api/recipe/recipes/:id/' do
 
   recipe = db.get_first_row(
     'SELECT id, title, time_minutes, price, link, description FROM recipes WHERE id = ?',
-    id,
+    id
   )
 
   ingredients = db.execute(
     'SELECT i.id, i.name, ri.amount, ri.unit FROM ingredients i
      JOIN recipe_ingredients ri ON i.id = ri.ingredient_id
      WHERE ri.recipe_id = ?',
-    id,
+    id
   )
 
   tags = db.execute(
     'SELECT t.id, t.name FROM tags t
      JOIN recipe_tags rt ON t.id = rt.tag_id
      WHERE rt.recipe_id = ?',
-    id,
+    id
   )
 
   db.close
@@ -366,7 +366,7 @@ get '/api/recipe/recipes/:id/' do
          link: recipe['link'] || '',
          description: recipe['description'] || '',
          ingredients: rows_to_hashes(ingredients),
-         tags: rows_to_hashes(tags),
+         tags: rows_to_hashes(tags)
        })
 end
 
@@ -384,7 +384,7 @@ put '/api/recipe/recipes/:id/' do
          link: data['link'] || '',
          tags: data['tags'] || [],
          ingredients: data['ingredients'] || [],
-         description: data['description'] || '',
+         description: data['description'] || ''
        })
 end
 
@@ -402,7 +402,7 @@ patch '/api/recipe/recipes/:id/' do
     link: data['link'] || '',
     tags: data['tags'] || [],
     ingredients: data['ingredients'] || [],
-    description: data['description'] || '',
+    description: data['description'] || ''
   }
 
   json(response)
@@ -432,7 +432,7 @@ post '/api/recipe/recipes/:id/upload-image/' do
 
   json({
          id: id.to_i,
-         image: 'http://example.com/image.jpg',
+         image: 'http://example.com/image.jpg'
        })
 end
 
@@ -460,7 +460,7 @@ put '/api/recipe/ingredients/:id/' do
 
   json({
          id: id.to_i,
-         name: data['name'],
+         name: data['name']
        })
 end
 
@@ -472,7 +472,7 @@ patch '/api/recipe/ingredients/:id/' do
 
   json({
          id: id.to_i,
-         name: data['name'] || 'Sample Ingredient',
+         name: data['name'] || 'Sample Ingredient'
        })
 end
 
@@ -512,7 +512,7 @@ put '/api/recipe/tags/:id/' do
 
   json({
          id: id.to_i,
-         name: data['name'],
+         name: data['name']
        })
 end
 
@@ -524,7 +524,7 @@ patch '/api/recipe/tags/:id/' do
 
   json({
          id: id.to_i,
-         name: data['name'] || 'Sample Tag',
+         name: data['name'] || 'Sample Tag'
        })
 end
 
