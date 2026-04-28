@@ -20,7 +20,7 @@ RUN bundle config set --local without 'development' && \
 # Copy application files
 COPY app.rb .
 COPY config.ru .
-COPY yml/api-schema.yaml ./api-schema.yaml
+COPY api-schema.yaml .
 COPY db/ ./db/
 COPY static/ ./static/
 COPY views/ ./views/
