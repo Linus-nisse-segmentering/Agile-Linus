@@ -5,7 +5,7 @@ services:
       dockerfile: docker/Dockerfile
     container_name: sinatra-app
     ports:
-      - "3000:3000"
+      - "1010:1010"
     environment:
       - RACK_ENV=production
       - DATABASE=app.db

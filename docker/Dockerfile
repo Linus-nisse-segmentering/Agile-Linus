@@ -26,10 +26,10 @@ COPY static/ ./static/
 COPY views/ ./views/
 
 # Expose port
-EXPOSE 3000
+EXPOSE 1010
 
 # Set environment variables
 ENV RACK_ENV=production
 
 # Run the application with Puma
-CMD ["bundle", "exec", "puma", "-b", "tcp://0.0.0.0:3000"]
+CMD ["bundle", "exec", "puma", "-b", "tcp://0.0.0.0:1010"]
