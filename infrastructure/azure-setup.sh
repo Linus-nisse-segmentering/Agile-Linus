@@ -31,7 +31,7 @@ done
 
 # Configuration variables - CUSTOMIZE THESE
 RESOURCE_GROUP="recipe-cookbook-rg"
-LOCATION="swedencentral"  # Change to your preferred region (e.g., "eastus", "northeurope")
+LOCATION="francecentral"  # Change to your preferred region (e.g., "eastus", "northeurope")
 VM_NAME="recipe-cookbook-vm"
 VM_SIZE="Standard_B1s"  # Change to "Standard_B2s" for better performance
 ADMIN_USERNAME="azureuser"
@@ -122,17 +122,55 @@ echo "Admin User: $ADMIN_USERNAME"
 echo "This may take 2-5 minutes..."
 echo ""
 
-az vm create \
-    --resource-group "$RESOURCE_GROUP" \
-    --name "$VM_NAME" \
-    --image Ubuntu2204 \
-    --size "$VM_SIZE" \
-    --admin-username "$ADMIN_USERNAME" \
-    --ssh-key-values "$SSH_KEY_PATH" \
-    --public-ip-sku Standard \
-    --output table
+# Try preferred size first, then fall back to common student-friendly sizes.
+VM_SIZE_CANDIDATES=(
+    "$VM_SIZE"
+    "Standard_B1ms"
+    "Standard_B2s"
+    "Standard_DS1_v2"
+    "Standard_A1_v2"
+)
 
-echo -e "${GREEN}✅ Virtual machine created${NC}"
+VM_CREATED=false
+for SIZE in "${VM_SIZE_CANDIDATES[@]}"; do
+    echo "Attempting VM creation with size: $SIZE"
+
+    set +e
+    VM_CREATE_OUTPUT=$(az vm create \
+        --resource-group "$RESOURCE_GROUP" \
+        --name "$VM_NAME" \
+        --image "Canonical:0001-com-ubuntu-server-jammy:22_04-lts:latest" \
+        --size "$SIZE" \
+        --admin-username "$ADMIN_USERNAME" \
+        --ssh-key-values "$SSH_KEY_PATH" \
+        --public-ip-sku Standard \
+        --output table 2>&1)
+    VM_CREATE_EXIT_CODE=$?
+    set -e
+
+    if [ $VM_CREATE_EXIT_CODE -eq 0 ]; then
+        VM_SIZE="$SIZE"
+        VM_CREATED=true
+        echo "$VM_CREATE_OUTPUT"
+        echo -e "${GREEN}✅ Virtual machine created with size $VM_SIZE${NC}"
+        break
+    fi
+
+    echo "$VM_CREATE_OUTPUT"
+    if echo "$VM_CREATE_OUTPUT" | grep -qiE "SkuNotAvailable|Capacity Restrictions|currently not available"; then
+        echo -e "${YELLOW}⚠️  Size $SIZE is not currently available in $LOCATION. Trying next size...${NC}"
+        continue
+    fi
+
+    echo -e "${RED}❌ VM creation failed for a non-capacity reason. Aborting.${NC}"
+    exit 1
+done
+
+if [ "$VM_CREATED" != true ]; then
+    echo -e "${RED}❌ Unable to create VM: no candidate sizes are currently available in $LOCATION.${NC}"
+    echo "Tip: Change LOCATION in this script or add additional VM sizes to VM_SIZE_CANDIDATES."
+    exit 1
+fi
 
 # Open required ports
 echo ""
