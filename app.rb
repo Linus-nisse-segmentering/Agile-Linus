@@ -5,11 +5,50 @@ require 'sinatra/json'
 require 'sinatra/content_for'
 require 'sqlite3'
 require 'json'
+require 'prometheus/client'
+require 'prometheus/client/formats/text'
 
 # Configure Sinatra
 set :port, 1010
 set :bind, '0.0.0.0'
 set :public_folder, 'static'
+
+REGISTRY = Prometheus::Client.registry
+HTTP_REQUESTS_TOTAL = REGISTRY.counter(
+  :http_requests_total,
+  docstring: 'Total number of HTTP requests',
+  labels: %i[method path status]
+)
+HTTP_REQUEST_DURATION_SECONDS = REGISTRY.histogram(
+  :http_request_duration_seconds,
+  docstring: 'HTTP request duration in seconds',
+  labels: %i[method path],
+  buckets: [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5]
+)
+
+def metric_path(path)
+  path.gsub(%r{/\d+}, '/:id')
+end
+
+before do
+  request.env['metrics.request_started_at'] = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+end
+
+after do
+  started_at = request.env['metrics.request_started_at']
+  next unless started_at
+
+  labels = {
+    method: request.request_method,
+    path: metric_path(request.path_info)
+  }
+
+  HTTP_REQUESTS_TOTAL.increment(labels: labels.merge(status: response.status.to_s))
+  HTTP_REQUEST_DURATION_SECONDS.observe(
+    Process.clock_gettime(Process::CLOCK_MONOTONIC) - started_at,
+    labels: labels
+  )
+end
 
 # Database configuration
 DATABASE = 'app.db'
@@ -31,6 +70,11 @@ end
 
 def rows_to_hashes(rows)
   rows.map { |row| row_to_hash(row) }
+end
+
+get '/metrics' do
+  content_type 'text/plain; version=0.0.4; charset=utf-8'
+  Prometheus::Client::Formats::Text.marshal(REGISTRY)
 end
 
 # Initialize database (called on startup)
@@ -136,7 +180,7 @@ end
 # Serve OpenAPI schema
 get '/api/schema' do
   content_type 'application/yaml'
-  File.read('api-schema.yaml')
+  File.read('yml/api-schema.yaml')
 end
 
 # Swagger UI endpoint
@@ -148,7 +192,7 @@ get '/apidocs' do
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>Recipe Cookbook API - Swagger UI</title>
-      <link rel="stylesheet" type="text/css" href="https://unpkg.com/swagger-ui-dist@5.11.0/swagger-ui.css">
+      <link rel="stylesheet" type="text/css" href="/swagger-ui/swagger-ui.css">
       <style>
         html { box-sizing: border-box; overflow: -moz-scrollbars-vertical; overflow-y: scroll; }
         *, *:before, *:after { box-sizing: inherit; }
@@ -157,8 +201,8 @@ get '/apidocs' do
     </head>
     <body>
       <div id="swagger-ui"></div>
-      <script src="https://unpkg.com/swagger-ui-dist@5.11.0/swagger-ui-bundle.js"></script>
-      <script src="https://unpkg.com/swagger-ui-dist@5.11.0/swagger-ui-standalone-preset.js"></script>
+      <script src="/swagger-ui/swagger-ui-bundle.js"></script>
+      <script src="/swagger-ui/swagger-ui-standalone-preset.js"></script>
       <script>
         window.onload = function() {
           window.ui = SwaggerUIBundle({

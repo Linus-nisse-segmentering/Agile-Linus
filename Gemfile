@@ -13,6 +13,9 @@ gem 'sqlite3', '~> 1.7'
 # JSON handling (included with sinatra-contrib)
 gem 'sinatra-contrib', '~> 4.0'
 
+# Prometheus metrics
+gem 'prometheus-client', '~> 4.2'
+
 # Web server
 gem 'puma', '~> 6.4'
 
