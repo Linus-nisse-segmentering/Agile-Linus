@@ -1,0 +1,10 @@
+services:
+  app:
+    image: ghcr.io/linus-nisse-segmentering/agile-linus:latest
+    container_name: sinatra-app
+    ports:
+      - "1010:1010"
+    environment:
+      - RACK_ENV=production
+      - DATABASE=app.db
+    restart: unless-stopped
