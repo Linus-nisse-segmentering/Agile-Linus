@@ -321,6 +321,14 @@ echo "=========================================="
 echo "Setting VM IP in GitHub Secrets"
 echo "=========================================="
 
+# Re-fetch IP in case it changed during provisioning.
+VM_IP=$(az vm show \
+    --resource-group "$RESOURCE_GROUP" \
+    --name "$VM_NAME" \
+    --show-details \
+    --query publicIps \
+    --output tsv)
+
 # Check if GitHub CLI is installed
 if ! command -v gh &> /dev/null; then
     echo -e "${YELLOW}⚠️  GitHub CLI is not installed${NC}"
