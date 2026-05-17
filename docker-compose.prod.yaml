@@ -2,9 +2,20 @@ services:
   app:
     image: ghcr.io/linus-nisse-segmentering/agile-linus:latest
     container_name: sinatra-app
-    ports:
-      - "1010:1010"
+    expose:
+      - "1010"
     environment:
       - RACK_ENV=production
       - DATABASE=app.db
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: sinatra-nginx
+    depends_on:
+      - app
+    ports:
+      - "80:80"
+    volumes:
+      - ./infrastructure/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
     restart: unless-stopped
