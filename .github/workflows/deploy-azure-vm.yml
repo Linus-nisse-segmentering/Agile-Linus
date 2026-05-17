@@ -52,7 +52,9 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: docker-compose.prod.yaml
+          source: |
+            docker-compose.prod.yaml
+            infrastructure/nginx/default.conf
           target: /home/${{ secrets.SSH_USER }}/app
 
       - name: Deploy on VM
@@ -64,6 +66,7 @@ jobs:
           script: |
             set -e
             mkdir -p ~/app
+            mkdir -p ~/app/infrastructure/nginx
             mv ~/app/docker-compose.prod.yaml ~/app/docker-compose.yaml
             if ! command -v docker >/dev/null 2>&1; then
               echo "Docker not found. Installing..."
