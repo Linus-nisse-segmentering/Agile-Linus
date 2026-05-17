@@ -31,7 +31,7 @@ done
 
 # Configuration variables - CUSTOMIZE THESE
 RESOURCE_GROUP="recipe-cookbook-rg"
-LOCATION="francecentral"  # Change to your preferred region (e.g., "eastus", "northeurope")
+LOCATION="swedencentral"  # Change to your preferred region (e.g., "eastus", "northeurope")
 VM_NAME="recipe-cookbook-vm"
 VM_SIZE="Standard_B1s"  # Change to "Standard_B2s" for better performance
 ADMIN_USERNAME="azureuser"
@@ -97,7 +97,16 @@ if az group exists --name "$RESOURCE_GROUP" | grep -q "true"; then
         echo "Deleting existing resource group..."
         az group delete --name "$RESOURCE_GROUP" --yes --no-wait
         echo "Waiting for deletion to complete..."
-        sleep 10
+        DELETE_TIMEOUT_SEC=600
+        DELETE_START_TIME=$SECONDS
+        while az group exists --name "$RESOURCE_GROUP" | grep -q "true"; do
+            if [ $((SECONDS - DELETE_START_TIME)) -ge $DELETE_TIMEOUT_SEC ]; then
+                echo -e "${RED}❌ Timed out waiting for resource group deletion after ${DELETE_TIMEOUT_SEC}s.${NC}"
+                echo "Try again later, or delete manually with: az group delete --name \"$RESOURCE_GROUP\" --yes"
+                exit 1
+            fi
+            sleep 10
+        done
     else
         echo "Using existing resource group"
     fi
@@ -178,6 +187,13 @@ echo "=========================================="
 echo "Configuring Network Security"
 echo "=========================================="
 echo "Opening ports: 22 (SSH), 80 (HTTP), 443 (HTTPS)"
+
+az vm open-port \
+    --resource-group "$RESOURCE_GROUP" \
+    --name "$VM_NAME" \
+    --port 22 \
+    --priority 290 \
+    --output table
 
 az vm open-port \
     --resource-group "$RESOURCE_GROUP" \
@@ -304,6 +320,14 @@ echo ""
 echo "=========================================="
 echo "Setting VM IP in GitHub Secrets"
 echo "=========================================="
+
+# Re-fetch IP in case it changed during provisioning.
+VM_IP=$(az vm show \
+    --resource-group "$RESOURCE_GROUP" \
+    --name "$VM_NAME" \
+    --show-details \
+    --query publicIps \
+    --output tsv)
 
 # Check if GitHub CLI is installed
 if ! command -v gh &> /dev/null; then
