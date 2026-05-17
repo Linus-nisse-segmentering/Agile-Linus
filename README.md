@@ -10,7 +10,7 @@ A recipe cookbook web application built with Ruby and the Sinatra framework, fea
 - SQLite database with full schema and seed data
 - Retro 90s web design aesthetic
 
-## Prerequisites 
+## Prerequisites
 
 - Docker
 - Docker Compose
