@@ -51,7 +51,7 @@ after do
 end
 
 # Database configuration
-DATABASE = 'app.db'
+DATABASE = ENV.fetch('DATABASE_PATH', 'app.db')
 
 # Helper method to get database connection
 def get_db_connection

@@ -1,5 +1,10 @@
 # Recipe Cookbook - Ruby/Sinatra Edition
 
+![Quality Pipeline](https://github.com/Linus-nisse-segmentering/Agile-Linus/actions/workflows/quality.yml/badge.svg)
+![CD Pipeline](https://github.com/Linus-nisse-segmentering/Agile-Linus/actions/workflows/cd.yml/badge.svg)
+![Linted with RuboCop](https://img.shields.io/badge/lint-RuboCop-black)
+![Tested with RSpec](https://img.shields.io/badge/test-RSpec-red)
+
 A recipe cookbook web application built with Ruby and the Sinatra framework, featuring a retro 90s-style interface and a RESTful API.
 
 ## Features
@@ -124,6 +129,28 @@ The database is automatically set up when the Docker container starts. If you ne
 docker compose down
 docker compose up --build
 ```
+
+## Quality and Testing
+
+- Test framework: RSpec + Rack::Test
+- Linting: RuboCop
+- CI quality pipeline: `.github/workflows/quality.yml`
+- Shared Git hooks: `.githooks/pre-commit`
+
+Run checks locally:
+
+```bash
+bundle exec rubocop
+bundle exec rspec
+```
+
+Enable shared Git hooks for your clone:
+
+```powershell
+./scripts/setup-git-hooks.ps1
+```
+
+See [docs/software-quality.md](docs/software-quality.md) for the full quality workflow and standards.
 
 ## Deployment Strategy
 

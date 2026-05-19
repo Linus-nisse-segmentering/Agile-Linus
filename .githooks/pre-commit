@@ -1,0 +1,6 @@
+#!/usr/bin/env sh
+set -eu
+
+echo "Running quality checks (RuboCop + RSpec)..."
+bundle exec rubocop
+bundle exec rspec --format progress
