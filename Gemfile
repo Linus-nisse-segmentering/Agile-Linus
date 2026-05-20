@@ -20,11 +20,11 @@ gem 'prometheus-client', '~> 4.2'
 gem 'puma', '~> 6.4'
 
 group :development, :test do
+  gem 'rack-test', '~> 2.1'
   gem 'rerun', '~> 0.14' # Auto-reload on file changes
+  gem 'rspec', '~> 3.13'
   gem 'rubocop', '~> 1.70', require: false
   gem 'rubocop-performance', require: false
-  gem 'rack-test', '~> 2.1'
-  gem 'rspec', '~> 3.13'
   gem 'simplecov', '~> 0.22', require: false
 end
 
