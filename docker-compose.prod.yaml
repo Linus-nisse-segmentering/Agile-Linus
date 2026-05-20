@@ -1,18 +1,12 @@
 services:
   app:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ghcr.io/linus-nisse-segmentering/agile-linus:latest
     container_name: sinatra-app
     expose:
       - "1010"
     environment:
       - RACK_ENV=production
       - DATABASE=app.db
-    volumes:
-      - ./db:/app/db
-      - ./static:/app/static
-      - ./views:/app/views
     restart: unless-stopped
 
   nginx:

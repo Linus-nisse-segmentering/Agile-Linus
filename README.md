@@ -1,5 +1,10 @@
 # Recipe Cookbook - Ruby/Sinatra Edition
 
+![Quality Pipeline](https://github.com/Linus-nisse-segmentering/Agile-Linus/actions/workflows/quality.yml/badge.svg)
+![CD Pipeline](https://github.com/Linus-nisse-segmentering/Agile-Linus/actions/workflows/cd.yml/badge.svg)
+![Linted with RuboCop](https://img.shields.io/badge/lint-RuboCop-black)
+![Tested with RSpec](https://img.shields.io/badge/test-RSpec-red)
+
 A recipe cookbook web application built with Ruby and the Sinatra framework, featuring a retro 90s-style interface and a RESTful API.
 
 ## Features
@@ -24,9 +29,11 @@ A recipe cookbook web application built with Ruby and the Sinatra framework, fea
 docker compose up --build
 ```
 
-2. The application will be available at: http://localhost:3000
+2. The application will be available at: http://localhost through the nginx reverse proxy.
 
-3. To stop the application:
+3. The app container still listens internally on port 1010 for direct container-to-container traffic.
+
+4. To stop the application:
 ```bash
 docker compose down
 ```
@@ -58,6 +65,15 @@ docker compose logs -f
 │   └── recipe_detail.erb  # Recipe detail template
 └── static/
     └── style.css       # Stylesheet
+├── infrastructure/
+│   ├── azure-setup.sh  # Azure VM provisioning helper
+│   └── nginx/
+│       └── default.conf # nginx reverse proxy configuration
+├── docs/
+│   └── deployment-strategy.md # Deployment strategy, SLA, and DoD
+└── .github/
+    └── workflows/
+        └── cd.yml     # Continuous deployment pipeline
 ```
 
 ## API Endpoints
@@ -113,6 +129,38 @@ The database is automatically set up when the Docker container starts. If you ne
 docker compose down
 docker compose up --build
 ```
+
+## Quality and Testing
+
+- Test framework: RSpec + Rack::Test
+- Linting: RuboCop
+- CI quality pipeline: `.github/workflows/quality.yml`
+- Shared Git hooks: `.githooks/pre-commit`
+
+Run checks locally:
+
+```bash
+bundle exec rubocop
+bundle exec rspec
+```
+
+Enable shared Git hooks for your clone:
+
+```powershell
+./scripts/setup-git-hooks.ps1
+```
+
+See [docs/software-quality.md](docs/software-quality.md) for the full quality workflow and standards.
+
+## Deployment Strategy
+
+Deployment is container-based: nginx receives public traffic on port 80 and proxies it to the Sinatra app on port 1010. The Azure VM setup script prepares the host for this compose stack, and the GitHub Actions workflow performs the build-and-deploy flow on `main`.
+
+## SLA and Definition of Done
+
+The service target for this educational deployment is 99.5% availability during the demo window, with a recovery target of 15 minutes for a failed release. A deployment is done only when the compose stack validates, nginx serves the application, and `/metrics` remains reachable for monitoring.
+
+See [docs/deployment-strategy.md](docs/deployment-strategy.md) for the full rollout and rollback notes.
 
 ## License
 
