@@ -8,8 +8,8 @@ ruby '>= 2.7.0'
 gem 'sinatra', '~> 4.0'
 
 # Database
-gem 'sqlite3', '~> 1.7'
 gem 'pg', '~> 1.5'
+gem 'sqlite3', '~> 1.7'
 
 # JSON handling (included with sinatra-contrib)
 gem 'sinatra-contrib', '~> 4.0'

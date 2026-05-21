@@ -175,7 +175,7 @@ get '/apidocs' do
   swagger_ui_html
 end
 
-def ingredients_for_recipe(db, id)
+def ingredients_for_recipe(_db, id)
   db_exec(
     'SELECT i.id, i.name, ri.amount, ri.unit FROM ingredients i
      JOIN recipe_ingredients ri ON i.id = ri.ingredient_id
@@ -184,7 +184,7 @@ def ingredients_for_recipe(db, id)
   )
 end
 
-def tags_for_recipe(db, id)
+def tags_for_recipe(_db, id)
   db_exec(
     'SELECT t.id, t.name FROM tags t
      JOIN recipe_tags rt ON t.id = rt.tag_id
@@ -413,40 +413,7 @@ get '/api/recipe/recipes/:id/' do
   puts 'Route invoked: GET /api/recipe/recipes/:id/'
   id = params[:id]
 
-  db = db_connection
-
-  recipe = db_first_row(
-    db,
-    'SELECT id, title, time_minutes, price, link, description FROM recipes WHERE id = $1',
-    [id],
-  )
-
-  ingredients = db_exec(
-    'SELECT i.id, i.name, ri.amount, ri.unit FROM ingredients i
-     JOIN recipe_ingredients ri ON i.id = ri.ingredient_id
-     WHERE ri.recipe_id = $1',
-    [id],
-  )
-
-  tags = db_exec(
-    'SELECT t.id, t.name FROM tags t
-     JOIN recipe_tags rt ON t.id = rt.tag_id
-     WHERE rt.recipe_id = $1',
-    [id],
-  )
-
-  db.close
-
-  json({
-         id: recipe['id'],
-         title: recipe['title'],
-         time_minutes: recipe['time_minutes'],
-         price: recipe['price'],
-         link: recipe['link'] || '',
-         description: recipe['description'] || '',
-         ingredients: rows_to_hashes(ingredients),
-         tags: rows_to_hashes(tags),
-       })
+  json(fetch_recipe_data(id))
 end
 
 # Update a recipe (full update)

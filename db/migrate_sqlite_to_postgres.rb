@@ -49,26 +49,29 @@ def pg_connection
   end
 end
 
-def ensure_schema(pg)
-  pg.exec(File.read(SCHEMA_FILE))
+def ensure_schema(pg_conn)
+  pg_conn.exec(File.read(SCHEMA_FILE))
 end
 
-def table_count(pg, table)
-  pg.exec_params("SELECT COUNT(*) FROM #{table}", []).getvalue(0, 0).to_i
+def table_count(pg_conn, table_name)
+  pg_conn.exec_params("SELECT COUNT(*) FROM #{table_name}", []).getvalue(0, 0).to_i
 end
 
-def clear_tables(pg)
-  pg.exec('TRUNCATE TABLE recipe_tags, recipe_ingredients, recipes, ingredients, tags, users RESTART IDENTITY CASCADE')
+def clear_tables(pg_conn)
+  pg_conn.exec(<<~SQL)
+    TRUNCATE TABLE recipe_tags, recipe_ingredients, recipes, ingredients, tags, users
+    RESTART IDENTITY CASCADE
+  SQL
 end
 
-def set_sequence(pg, table)
-  sequence_name = pg.exec_params('SELECT pg_get_serial_sequence($1, $2)', [table, 'id']).getvalue(0, 0)
-  max_id = pg.exec_params("SELECT MAX(id) FROM #{table}", []).getvalue(0, 0)
+def set_sequence(pg_conn, table_name)
+  sequence_name = pg_conn.exec_params('SELECT pg_get_serial_sequence($1, $2)', [table_name, 'id']).getvalue(0, 0)
+  max_id = pg_conn.exec_params("SELECT MAX(id) FROM #{table_name}", []).getvalue(0, 0)
 
   if max_id.nil?
-    pg.exec_params('SELECT setval($1, 1, false)', [sequence_name])
+    pg_conn.exec_params('SELECT setval($1, 1, false)', [sequence_name])
   else
-    pg.exec_params('SELECT setval($1, $2, true)', [sequence_name, max_id.to_i])
+    pg_conn.exec_params('SELECT setval($1, $2, true)', [sequence_name, max_id.to_i])
   end
 end
 
@@ -86,7 +89,7 @@ pg = pg_connection
 
 ensure_schema(pg)
 
-existing_counts = TABLES.map { |table, *_cols| [table, table_count(pg, table)] }.to_h
+existing_counts = TABLES.to_h { |table, *_cols| [table, table_count(pg, table)] }
 if existing_counts.values.any?(&:positive?) && !PG_CLEAR
   warn 'PostgreSQL database is not empty. Set PG_CLEAR=true to truncate before migrating.'
   existing_counts.each { |table, count| warn "#{table}: #{count} rows" }
