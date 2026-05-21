@@ -7,6 +7,12 @@
 
 set -e  # Exit on any error
 
+pause_on_exit() {
+    read -p "Press Enter to close this script..." -r
+}
+
+trap 'pause_on_exit' ERR
+
 # Parse command line arguments
 NO_COLORS=false
 while [[ $# -gt 0 ]]; do
@@ -578,3 +584,5 @@ echo ""
 echo "To delete everything later, run:"
 echo "   ${RED}./azure-teardown.sh${NC}"
 echo ""
+
+pause_on_exit

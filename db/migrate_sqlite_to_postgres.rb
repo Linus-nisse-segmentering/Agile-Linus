@@ -5,7 +5,7 @@ require 'sqlite3'
 require 'pg'
 
 DB_DIR = File.dirname(__FILE__)
-DEFAULT_SQLITE_PATH = File.join(DB_DIR, '..', 'app.db')
+DEFAULT_SQLITE_PATH = File.join(DB_DIR, 'app.db')
 SCHEMA_FILE = File.join(DB_DIR, 'schema.pg.sql')
 
 SQLITE_PATH = ENV.fetch('SQLITE_PATH', DEFAULT_SQLITE_PATH)

@@ -7,7 +7,7 @@ services:
       - POSTGRES_USER=recipe_user
       - POSTGRES_PASSWORD=recipe_pass
     volumes:
-      - recipe_db_data:/var/lib/postgresql/data
+      - recipe_db_data_v2:/var/lib/postgresql/data
     restart: unless-stopped
 
   app:
@@ -45,4 +45,4 @@ services:
     restart: unless-stopped
 
 volumes:
-  recipe_db_data:
+  recipe_db_data_v2:

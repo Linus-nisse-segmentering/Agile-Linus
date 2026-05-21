@@ -140,6 +140,7 @@ get '/' do
   recipes = db_exec(db, 'SELECT id, title, time_minutes, price, link FROM recipes')
   recipes_with_tags = recipes.map do |recipe|
     tags = db_exec(
+      db,
       'SELECT t.id, t.name FROM tags t
        JOIN recipe_tags rt ON t.id = rt.tag_id
        WHERE rt.recipe_id = $1',
@@ -175,8 +176,9 @@ get '/apidocs' do
   swagger_ui_html
 end
 
-def ingredients_for_recipe(_db, id)
+def ingredients_for_recipe(db, id)
   db_exec(
+    db,
     'SELECT i.id, i.name, ri.amount, ri.unit FROM ingredients i
      JOIN recipe_ingredients ri ON i.id = ri.ingredient_id
      WHERE ri.recipe_id = $1',
@@ -184,8 +186,9 @@ def ingredients_for_recipe(_db, id)
   )
 end
 
-def tags_for_recipe(_db, id)
+def tags_for_recipe(db, id)
   db_exec(
+    db,
     'SELECT t.id, t.name FROM tags t
      JOIN recipe_tags rt ON t.id = rt.tag_id
      WHERE rt.recipe_id = $1',
