@@ -37,6 +37,13 @@ VM_SIZE="Standard_B1s"  # Change to "Standard_B2s" for better performance
 ADMIN_USERNAME="azureuser"
 SSH_KEY_PATH="$HOME/.ssh/id_rsa.pub"   # Change this path to point at your public key - (your private key should be in the same folder, and should be set in SSH_PRIVATE_KEY on GitHub)
 
+# Database VM configuration
+DB_VM_NAME="recipe-cookbook-db-vm"
+DB_VM_SIZE="Standard_B1s"
+DB_NAME="recipe_cookbook"
+DB_USER="recipe_user"
+DB_PASSWORD="recipe_pass"
+
 # Disable all color output
 GREEN=''
 YELLOW=''
@@ -211,6 +218,106 @@ az vm open-port \
 
 echo -e "${GREEN}✅ Ports configured${NC}"
 
+# Get app VM private IP for DB access rules
+APP_PRIVATE_IP=$(az vm show \
+    --resource-group "$RESOURCE_GROUP" \
+    --name "$VM_NAME" \
+    --show-details \
+    --query privateIps \
+    --output tsv)
+
+# Create Database Virtual Machine
+echo ""
+echo "=========================================="
+echo "Creating Database Virtual Machine"
+echo "=========================================="
+echo "DB VM Name: $DB_VM_NAME"
+echo "Size: $DB_VM_SIZE"
+echo "Admin User: $ADMIN_USERNAME"
+
+APP_NIC_ID=$(az vm show \
+    --resource-group "$RESOURCE_GROUP" \
+    --name "$VM_NAME" \
+    --query "networkProfile.networkInterfaces[0].id" \
+    --output tsv)
+
+APP_SUBNET_ID=$(az network nic show \
+    --ids "$APP_NIC_ID" \
+    --query "ipConfigurations[0].subnet.id" \
+    --output tsv)
+
+VNET_NAME=$(echo "$APP_SUBNET_ID" | awk -F/ '{print $(NF-2)}')
+SUBNET_NAME=$(echo "$APP_SUBNET_ID" | awk -F/ '{print $NF}')
+
+if az vm show --resource-group "$RESOURCE_GROUP" --name "$DB_VM_NAME" &> /dev/null; then
+    echo -e "${YELLOW}⚠️  DB VM already exists. Skipping creation.${NC}"
+else
+    az vm create \
+        --resource-group "$RESOURCE_GROUP" \
+        --name "$DB_VM_NAME" \
+        --image "Canonical:0001-com-ubuntu-server-jammy:22_04-lts:latest" \
+        --size "$DB_VM_SIZE" \
+        --admin-username "$ADMIN_USERNAME" \
+        --ssh-key-values "$SSH_KEY_PATH" \
+        --public-ip-sku Standard \
+        --vnet-name "$VNET_NAME" \
+        --subnet "$SUBNET_NAME" \
+        --output table
+
+    echo -e "${GREEN}✅ Database virtual machine created${NC}"
+fi
+
+# Open SSH port for DB VM
+az vm open-port \
+    --resource-group "$RESOURCE_GROUP" \
+    --name "$DB_VM_NAME" \
+    --port 22 \
+    --priority 320 \
+    --output table
+
+# Allow Postgres only from the app VM private IP
+DB_NIC_ID=$(az vm show \
+    --resource-group "$RESOURCE_GROUP" \
+    --name "$DB_VM_NAME" \
+    --query "networkProfile.networkInterfaces[0].id" \
+    --output tsv)
+
+DB_NSG_ID=$(az network nic show \
+    --ids "$DB_NIC_ID" \
+    --query "networkSecurityGroup.id" \
+    --output tsv)
+
+DB_NSG_NAME=$(az network nsg show \
+    --ids "$DB_NSG_ID" \
+    --query "name" \
+    --output tsv)
+
+az network nsg rule create \
+    --resource-group "$RESOURCE_GROUP" \
+    --nsg-name "$DB_NSG_NAME" \
+    --name AllowPostgresFromApp \
+    --priority 330 \
+    --direction Inbound \
+    --access Allow \
+    --protocol Tcp \
+    --source-address-prefixes "$APP_PRIVATE_IP" \
+    --destination-port-ranges 5432 \
+    --output table
+
+DB_PRIVATE_IP=$(az vm show \
+    --resource-group "$RESOURCE_GROUP" \
+    --name "$DB_VM_NAME" \
+    --show-details \
+    --query privateIps \
+    --output tsv)
+
+DB_PUBLIC_IP=$(az vm show \
+    --resource-group "$RESOURCE_GROUP" \
+    --name "$DB_VM_NAME" \
+    --show-details \
+    --query publicIps \
+    --output tsv)
+
 # Get VM public IP
 echo ""
 echo "=========================================="
@@ -315,6 +422,60 @@ ENDSSH
     echo -e "${YELLOW}⚠️  Note: You need to logout and login again for docker group changes to take effect${NC}"
 fi
 
+# Install PostgreSQL on the DB VM
+echo ""
+read -p "Do you want to install PostgreSQL on the DB VM now? (Y/n): " -n 1 -r
+echo
+if [[ ! $REPLY =~ ^[Nn]$ ]]; then
+    echo ""
+    echo "=========================================="
+    echo "Installing PostgreSQL on DB VM"
+    echo "=========================================="
+
+    ssh -o StrictHostKeyChecking=no "$ADMIN_USERNAME@$DB_PUBLIC_IP" << ENDSSH
+        set -e
+        echo "Updating package index..."
+        sudo apt update
+
+        echo "Installing PostgreSQL..."
+        sudo apt install -y postgresql postgresql-contrib
+
+        echo "Configuring PostgreSQL for remote access..."
+        sudo sed -i "s/^#listen_addresses =.*/listen_addresses = '*'/" /etc/postgresql/*/main/postgresql.conf
+
+        echo "Allowing app VM to connect..."
+        echo "host    all             all             ${APP_PRIVATE_IP}/32            md5" | sudo tee -a /etc/postgresql/*/main/pg_hba.conf > /dev/null
+
+        echo "Restarting PostgreSQL..."
+        sudo systemctl restart postgresql
+
+        echo "Creating database and user..."
+        sudo -u postgres psql -v ON_ERROR_STOP=1 << SQL
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = '${DB_USER}') THEN
+        CREATE ROLE ${DB_USER} LOGIN PASSWORD '${DB_PASSWORD}';
+    END IF;
+END
+$$;
+
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT FROM pg_database WHERE datname = '${DB_NAME}') THEN
+        CREATE DATABASE ${DB_NAME};
+    END IF;
+END
+$$;
+
+GRANT ALL PRIVILEGES ON DATABASE ${DB_NAME} TO ${DB_USER};
+SQL
+
+        echo "PostgreSQL installation complete."
+ENDSSH
+
+    echo -e "${GREEN}✅ PostgreSQL installed and configured${NC}"
+fi
+
 # Set VM IP in GitHub secrets
 echo ""
 echo "=========================================="
@@ -341,6 +502,11 @@ if ! command -v gh &> /dev/null; then
     echo "   SSH_USER = $ADMIN_USERNAME"
     echo "   SSH_HOST = $VM_IP"
     echo "   SSH_PRIVATE_KEY = Contents of ~/.ssh/id_rsa"
+    echo "   DB_HOST = $DB_PRIVATE_IP" 
+    echo "   DB_PORT = 5432" 
+    echo "   DB_NAME = $DB_NAME" 
+    echo "   DB_USER = $DB_USER" 
+    echo "   DB_PASSWORD = $DB_PASSWORD" 
     echo ""
     echo "3. Or install GitHub CLI and run this script from your repository directory"
 else
@@ -361,6 +527,13 @@ else
     
     # Set SSH_PRIVATE_KEY secret
     gh secret set SSH_PRIVATE_KEY < "${SSH_KEY_PATH%.pub}"
+
+    # Set DB connection secrets
+    echo "$DB_PRIVATE_IP" | gh secret set DB_HOST
+    echo "5432" | gh secret set DB_PORT
+    echo "$DB_NAME" | gh secret set DB_NAME
+    echo "$DB_USER" | gh secret set DB_USER
+    echo "$DB_PASSWORD" | gh secret set DB_PASSWORD
     
     echo -e "${GREEN}✅ GitHub secrets set successfully${NC}"
 fi
@@ -375,6 +548,9 @@ echo "Resource Group: ${GREEN}$RESOURCE_GROUP${NC}"
 echo "VM Name: ${GREEN}$VM_NAME${NC}"
 echo "VM Public IP: ${GREEN}$VM_IP${NC}"
 echo "Admin Username: ${GREEN}$ADMIN_USERNAME${NC}"
+echo "DB VM Name: ${GREEN}$DB_VM_NAME${NC}"
+echo "DB VM Public IP: ${GREEN}$DB_PUBLIC_IP${NC}"
+echo "DB VM Private IP: ${GREEN}$DB_PRIVATE_IP${NC}"
 echo ""
 echo "=========================================="
 echo "Next Steps:"
@@ -391,6 +567,11 @@ echo "3. GitHub secrets have been set automatically:"
 echo "   ${YELLOW}SSH_USER${NC} = $ADMIN_USERNAME"
 echo "   ${YELLOW}SSH_HOST${NC} = $VM_IP"
 echo "   ${YELLOW}SSH_PRIVATE_KEY${NC} = Your SSH private key"
+echo "   ${YELLOW}DB_HOST${NC} = $DB_PRIVATE_IP" 
+echo "   ${YELLOW}DB_PORT${NC} = 5432" 
+echo "   ${YELLOW}DB_NAME${NC} = $DB_NAME" 
+echo "   ${YELLOW}DB_USER${NC} = $DB_USER" 
+echo "   ${YELLOW}DB_PASSWORD${NC} = $DB_PASSWORD" 
 echo ""
 echo "=========================================="
 echo ""

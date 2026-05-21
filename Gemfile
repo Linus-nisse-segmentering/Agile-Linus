@@ -9,6 +9,7 @@ gem 'sinatra', '~> 4.0'
 
 # Database
 gem 'sqlite3', '~> 1.7'
+gem 'pg', '~> 1.5'
 
 # JSON handling (included with sinatra-contrib)
 gem 'sinatra-contrib', '~> 4.0'

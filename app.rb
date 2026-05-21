@@ -3,7 +3,7 @@
 require 'sinatra'
 require 'sinatra/json'
 require 'sinatra/content_for'
-require 'sqlite3'
+require 'pg'
 require 'json'
 require 'prometheus/client'
 require 'prometheus/client/formats/text'
@@ -51,17 +51,44 @@ after do
 end
 
 # Database configuration
-DATABASE = ENV.fetch('DATABASE_PATH', 'app.db')
+DB_HOST = ENV.fetch('DB_HOST', 'localhost')
+DB_PORT = Integer(ENV.fetch('DB_PORT', '5432'))
+DB_NAME = ENV.fetch('DB_NAME', 'recipe_cookbook')
+DB_USER = ENV.fetch('DB_USER', 'recipe_user')
+DB_PASSWORD = ENV.fetch('DB_PASSWORD', 'recipe_pass')
+DB_SSLMODE = ENV.fetch('DB_SSLMODE', 'prefer')
 
 # Helper method to get database connection
 def db_connection
-  db = SQLite3::Database.new(DATABASE)
-  db.results_as_hash = true
-  db.execute('PRAGMA foreign_keys = ON')
-  db
+  if ENV['DATABASE_URL'] && !ENV['DATABASE_URL'].empty?
+    PG.connect(ENV['DATABASE_URL'])
+  else
+    PG.connect(
+      host: DB_HOST,
+      port: DB_PORT,
+      dbname: DB_NAME,
+      user: DB_USER,
+      password: DB_PASSWORD,
+      sslmode: DB_SSLMODE,
+    )
+  end
 end
 
-# Helper method to convert SQLite rows to proper hashes
+def db_exec(db, sql, params = [])
+  db.exec_params(sql, params)
+end
+
+def db_first_row(db, sql, params = [])
+  result = db.exec_params(sql, params)
+  result.ntuples.positive? ? result[0] : nil
+end
+
+def db_first_value(db, sql, params = [])
+  row = db_first_row(db, sql, params)
+  row&.values&.first
+end
+
+# Helper method to convert rows to proper hashes
 def row_to_hash(row)
   return nil if row.nil?
 
@@ -79,17 +106,19 @@ end
 
 # Initialize database (called on startup)
 def init_db
+  return unless ENV.fetch('DB_INIT', 'false').downcase == 'true'
+
   db = db_connection
 
   # Create tables
-  db.execute_batch(File.read('db/schema.sql'))
+  db.exec(File.read('db/schema.pg.sql'))
 
   # Check if we need to seed
-  recipe_count = db.get_first_value('SELECT COUNT(*) FROM recipes')
+  recipe_count = db_first_value(db, 'SELECT COUNT(*) FROM recipes')
 
   if recipe_count.to_i.zero?
     puts 'Seeding database...'
-    db.execute_batch(File.read('db/seeds.sql'))
+    db.exec(File.read('db/seeds.sql'))
   end
 
   db.close
@@ -108,13 +137,13 @@ get '/' do
   puts 'Route invoked: GET /'
   db = db_connection
 
-  recipes = db.execute('SELECT id, title, time_minutes, price, link FROM recipes')
+  recipes = db_exec(db, 'SELECT id, title, time_minutes, price, link FROM recipes')
   recipes_with_tags = recipes.map do |recipe|
-    tags = db.execute(
+    tags = db_exec(
       'SELECT t.id, t.name FROM tags t
        JOIN recipe_tags rt ON t.id = rt.tag_id
-       WHERE rt.recipe_id = ?',
-      recipe['id'],
+       WHERE rt.recipe_id = $1',
+      [recipe['id']],
     )
 
     {
@@ -147,29 +176,30 @@ get '/apidocs' do
 end
 
 def ingredients_for_recipe(db, id)
-  db.execute(
+  db_exec(
     'SELECT i.id, i.name, ri.amount, ri.unit FROM ingredients i
      JOIN recipe_ingredients ri ON i.id = ri.ingredient_id
-     WHERE ri.recipe_id = ?',
-    id,
+     WHERE ri.recipe_id = $1',
+    [id],
   )
 end
 
 def tags_for_recipe(db, id)
-  db.execute(
+  db_exec(
     'SELECT t.id, t.name FROM tags t
      JOIN recipe_tags rt ON t.id = rt.tag_id
-     WHERE rt.recipe_id = ?',
-    id,
+     WHERE rt.recipe_id = $1',
+    [id],
   )
 end
 
 def fetch_recipe_data(id)
   db = db_connection
 
-  recipe = db.get_first_row(
-    'SELECT id, title, time_minutes, price, link, description FROM recipes WHERE id = ?',
-    id,
+  recipe = db_first_row(
+    db,
+    'SELECT id, title, time_minutes, price, link, description FROM recipes WHERE id = $1',
+    [id],
   )
 
   ingredients = ingredients_for_recipe(db, id)
@@ -261,11 +291,11 @@ post '/api/user/create/' do
   data = JSON.parse(request.body.read)
 
   db = db_connection
-  db.execute(
-    'INSERT INTO users (email, password, name) VALUES (?, ?, ?)',
-    data['email'], data['password'], data['name']
+  db_exec(
+    db,
+    'INSERT INTO users (email, password, name) VALUES ($1, $2, $3) RETURNING id',
+    [data['email'], data['password'], data['name']],
   )
-  db.last_insert_row_id
   db.close
 
   status 201
@@ -328,21 +358,21 @@ get '/api/recipe/recipes/' do
   puts 'Route invoked: GET /api/recipe/recipes/'
 
   db = db_connection
-  recipes = db.execute('SELECT id, title, time_minutes, price, link FROM recipes')
+  recipes = db_exec(db, 'SELECT id, title, time_minutes, price, link FROM recipes')
 
   result = recipes.map do |recipe|
-    ingredients = db.execute(
+    ingredients = db_exec(
       'SELECT i.id, i.name, ri.amount, ri.unit FROM ingredients i
        JOIN recipe_ingredients ri ON i.id = ri.ingredient_id
-       WHERE ri.recipe_id = ?',
-      recipe['id'],
+       WHERE ri.recipe_id = $1',
+      [recipe['id']],
     )
 
-    tags = db.execute(
+    tags = db_exec(
       'SELECT t.id, t.name FROM tags t
        JOIN recipe_tags rt ON t.id = rt.tag_id
-       WHERE rt.recipe_id = ?',
-      recipe['id'],
+       WHERE rt.recipe_id = $1',
+      [recipe['id']],
     )
 
     {
@@ -385,23 +415,24 @@ get '/api/recipe/recipes/:id/' do
 
   db = db_connection
 
-  recipe = db.get_first_row(
-    'SELECT id, title, time_minutes, price, link, description FROM recipes WHERE id = ?',
-    id,
+  recipe = db_first_row(
+    db,
+    'SELECT id, title, time_minutes, price, link, description FROM recipes WHERE id = $1',
+    [id],
   )
 
-  ingredients = db.execute(
+  ingredients = db_exec(
     'SELECT i.id, i.name, ri.amount, ri.unit FROM ingredients i
      JOIN recipe_ingredients ri ON i.id = ri.ingredient_id
-     WHERE ri.recipe_id = ?',
-    id,
+     WHERE ri.recipe_id = $1',
+    [id],
   )
 
-  tags = db.execute(
+  tags = db_exec(
     'SELECT t.id, t.name FROM tags t
      JOIN recipe_tags rt ON t.id = rt.tag_id
-     WHERE rt.recipe_id = ?',
-    id,
+     WHERE rt.recipe_id = $1',
+    [id],
   )
 
   db.close
@@ -463,11 +494,8 @@ delete '/api/recipe/recipes/:id/' do
 
   db = db_connection
 
-  # Enable foreign keys to ensure CASCADE delete works
-  db.execute('PRAGMA foreign_keys = ON')
-
   # Delete the recipe (CASCADE will handle recipe_ingredients and recipe_tags)
-  db.execute('DELETE FROM recipes WHERE id = ?', id)
+  db_exec(db, 'DELETE FROM recipes WHERE id = $1', [id])
   db.close
 
   status 204
@@ -493,7 +521,7 @@ get '/api/recipe/ingredients/' do
   puts 'Route invoked: GET /api/recipe/ingredients/'
 
   db = db_connection
-  ingredients = db.execute('SELECT id, name FROM ingredients')
+  ingredients = db_exec(db, 'SELECT id, name FROM ingredients')
   db.close
 
   result = rows_to_hashes(ingredients)
@@ -530,7 +558,7 @@ delete '/api/recipe/ingredients/:id/' do
   id = params[:id]
 
   db = db_connection
-  db.execute('DELETE FROM ingredients WHERE id = ?', id)
+  db_exec(db, 'DELETE FROM ingredients WHERE id = $1', [id])
   db.close
 
   status 204
@@ -545,7 +573,7 @@ get '/api/recipe/tags/' do
   puts 'Route invoked: GET /api/recipe/tags/'
 
   db = db_connection
-  tags = db.execute('SELECT id, name FROM tags')
+  tags = db_exec(db, 'SELECT id, name FROM tags')
   db.close
 
   result = rows_to_hashes(tags)
@@ -581,8 +609,8 @@ delete '/api/recipe/tags/:id/' do
   puts 'Route invoked: DELETE /api/recipe/tags/:id/'
   id = params[:id]
 
-  db = get_db_connection
-  db.execute('DELETE FROM tags WHERE id = ?', id)
+  db = db_connection
+  db_exec(db, 'DELETE FROM tags WHERE id = $1', [id])
   db.close
 
   status 204
