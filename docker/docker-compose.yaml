@@ -1,0 +1,16 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sinatra-app
+    ports:
+      - "3000:3000"
+    environment:
+      - RACK_ENV=production
+      - DATABASE=app.db
+    volumes:
+      - ./db:/app/db
+      - ./static:/app/static
+      - ./views:/app/views
+    restart: unless-stopped
