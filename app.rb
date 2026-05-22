@@ -132,33 +132,49 @@ end
 # WEB ROUTES (HTML pages)
 # ============================================
 
+
+# Enhanced error logging for debugging
+error do
+  e = env['sinatra.error']
+  puts "Sinatra error: \\#{e.class} - \\#{e.message}\\n\\#{e.backtrace.join("\\n")}" if e
+  'Internal Server Error'
+end
+
 # Home page - display all recipes
 get '/' do
-  puts 'Route invoked: GET /'
-  db = db_connection
+  puts 'Route start: GET /'
+  begin
+    db = db_connection
+    puts 'DB connected'
 
-  recipes = db_exec(db, 'SELECT id, title, time_minutes, price, link FROM recipes')
-  recipes_with_tags = recipes.map do |recipe|
-    tags = db_exec(
-      db,
-      'SELECT t.id, t.name FROM tags t
-       JOIN recipe_tags rt ON t.id = rt.tag_id
-       WHERE rt.recipe_id = $1',
-      [recipe['id']],
-    )
+    recipes = db_exec(db, 'SELECT id, title, time_minutes, price, link FROM recipes')
+    puts "Fetched recipes: \\#{recipes.ntuples} rows"
+    recipes_with_tags = recipes.map do |recipe|
+      tags = db_exec(
+        db,
+        'SELECT t.id, t.name FROM tags t
+         JOIN recipe_tags rt ON t.id = rt.tag_id
+         WHERE rt.recipe_id = $1',
+        [recipe['id']],
+      )
 
-    {
-      'id' => recipe['id'],
-      'title' => recipe['title'],
-      'time_minutes' => recipe['time_minutes'],
-      'price' => recipe['price'],
-      'link' => recipe['link'] || '',
-      'tags' => rows_to_hashes(tags),
-    }
+      {
+        'id' => recipe['id'],
+        'title' => recipe['title'],
+        'time_minutes' => recipe['time_minutes'],
+        'price' => recipe['price'],
+        'link' => recipe['link'] || '',
+        'tags' => rows_to_hashes(tags),
+      }
+    end
+
+    db.close
+    puts 'DB closed'
+    erb :home, locals: { recipes: recipes_with_tags }
+  rescue => e
+    puts "Exception in GET /: \\#{e.class} - \\#{e.message}\\n\\#{e.backtrace.join("\\n")}"
+    halt 500, 'Internal Server Error'
   end
-
-  db.close
-  erb :home, locals: { recipes: recipes_with_tags }
 end
 
 # ============================================
