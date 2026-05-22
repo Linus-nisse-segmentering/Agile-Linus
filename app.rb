@@ -136,7 +136,7 @@ end
 # Enhanced error logging for debugging
 error do
   e = env['sinatra.error']
-  puts "Sinatra error: \\#{e.class} - \\#{e.message}\\n\\#{e.backtrace.join("\\n")}" if e
+  puts "Sinatra error: \\#{e.class} - \\#{e.message}\\n\\#{e.backtrace.join('\\n')}" if e
   'Internal Server Error'
 end
 
@@ -171,8 +171,8 @@ get '/' do
     db.close
     puts 'DB closed'
     erb :home, locals: { recipes: recipes_with_tags }
-  rescue => e
-    puts "Exception in GET /: \\#{e.class} - \\#{e.message}\\n\\#{e.backtrace.join("\\n")}"
+  rescue StandardError => e
+    puts "Exception in GET /: \\#{e.class} - \\#{e.message}\\n\\#{e.backtrace.join('\\n')}"
     halt 500, 'Internal Server Error'
   end
 end
