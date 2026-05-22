@@ -12,6 +12,18 @@
 			],
 			"isBackground": false,
 			"group": "build"
+		},
+		{
+			"label": "Rebuild app layout",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-Command",
+				"Set-Location 'c:\\Users\\Sahra\\OneDrive\\Vedhæftede filer\\Desktop\\IT-Arkitektur, Cloud, DevOps\\opgave 1 sem4\\Agile-Linus'; docker compose -f 'docker-compose.yaml' build --no-cache app; docker compose -f 'docker-compose.yaml' up -d --force-recreate app nginx"
+			],
+			"isBackground": false,
+			"group": "build"
 		}
 	]
 }
