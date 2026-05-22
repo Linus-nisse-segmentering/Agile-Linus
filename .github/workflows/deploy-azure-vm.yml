@@ -87,5 +87,6 @@ jobs:
             echo "${{ secrets.GHCR_PAT }}" | sudo docker login ghcr.io -u "${{ github.repository_owner }}" --password-stdin
             cd ~/app
             sudo docker compose pull
-            sudo docker compose up -d
+            sudo docker compose up -d --wait --wait-timeout 180
+            sudo docker compose ps
             sudo docker image prune -f
