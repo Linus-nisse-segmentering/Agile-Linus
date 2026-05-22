@@ -1,3 +1,4 @@
+
 #!/bin/bash
 
 # Enhanced Azure VM Setup Script for CI/CD Demo
@@ -5,9 +6,16 @@
 # and ensures VM is updated/upgraded after creation
 # Also sets the VM IP address in GitHub secrets
 
+
 set -e  # Exit on any error
 
+# Logging setup
+LOG_FILE="$(dirname "$0")/setup.log"
+echo "--- Azure setup started at $(date) ---" > "$LOG_FILE"
+exec > >(tee -a "$LOG_FILE") 2>&1
+
 pause_on_exit() {
+    echo "--- Azure setup ended at $(date) ---" | tee -a "$LOG_FILE"
     read -p "Press Enter to close this script..." -r
 }
 
@@ -48,6 +56,7 @@ VM_SIZE="Standard_B1s"  # Change to "Standard_B2s" for better performance
 ADMIN_USERNAME="azureuser"
 SSH_KEY_PATH="$HOME/.ssh/id_rsa.pub"   # Change this path to point at your public key - (your private key should be in the same folder, and should be set in SSH_PRIVATE_KEY on GitHub)
 SSH_PRIVATE_KEY_PATH="${SSH_KEY_PATH%.pub}"
+APP_PUBLIC_IP_NAME="recipe-cookbook-public-ip"
 
 # Database VM configuration
 DB_VM_NAME="recipe-cookbook-db-vm"
@@ -117,27 +126,15 @@ echo "=========================================="
 echo "Name: $RESOURCE_GROUP"
 echo "Location: $LOCATION"
 
+
 if az group exists --name "$RESOURCE_GROUP" | grep -q "true"; then
-    echo -e "${YELLOW}⚠️  Resource group already exists${NC}"
-    read -p "Do you want to delete and recreate it? (y/N): " -n 1 -r
-    echo
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
-        echo "Deleting existing resource group..."
-        az group delete --name "$RESOURCE_GROUP" --yes --no-wait
-        echo "Waiting for deletion to complete..."
-        DELETE_TIMEOUT_SEC=600
-        DELETE_START_TIME=$SECONDS
-        while az group exists --name "$RESOURCE_GROUP" | grep -q "true"; do
-            if [ $((SECONDS - DELETE_START_TIME)) -ge $DELETE_TIMEOUT_SEC ]; then
-                echo -e "${RED}❌ Timed out waiting for resource group deletion after ${DELETE_TIMEOUT_SEC}s.${NC}"
-                echo "Try again later, or delete manually with: az group delete --name \"$RESOURCE_GROUP\" --yes"
-                exit 1
-            fi
-            sleep 10
-        done
-    else
-        echo "Using existing resource group"
-    fi
+    echo -e "${YELLOW}⚠️  Resource group already exists. Using existing resource group.${NC}"
+else
+    az group create \
+        --name "$RESOURCE_GROUP" \
+        --location "$LOCATION" \
+        --output table
+    echo -e "${GREEN}✅ Resource group created${NC}"
 fi
 
 if ! az group exists --name "$RESOURCE_GROUP" | grep -q "true"; then
@@ -146,6 +143,24 @@ if ! az group exists --name "$RESOURCE_GROUP" | grep -q "true"; then
         --location "$LOCATION" \
         --output table
     echo -e "${GREEN}✅ Resource group created${NC}"
+fi
+
+# Create or reuse a static public IP for the app VM
+echo ""
+echo "=========================================="
+echo "Ensuring Static Public IP for App VM"
+echo "=========================================="
+
+if az network public-ip show --resource-group "$RESOURCE_GROUP" --name "$APP_PUBLIC_IP_NAME" &> /dev/null; then
+    echo -e "${YELLOW}⚠️  Public IP $APP_PUBLIC_IP_NAME already exists. Reusing.${NC}"
+else
+    az network public-ip create \
+        --resource-group "$RESOURCE_GROUP" \
+        --name "$APP_PUBLIC_IP_NAME" \
+        --sku Standard \
+        --allocation-method Static \
+        --output table
+    echo -e "${GREEN}✅ Public IP created${NC}"
 fi
 
 # Create Virtual Machine
@@ -180,7 +195,7 @@ for SIZE in "${VM_SIZE_CANDIDATES[@]}"; do
         --size "$SIZE" \
         --admin-username "$ADMIN_USERNAME" \
         --ssh-key-values "$(cat "$SSH_KEY_PATH")" \
-        --public-ip-sku Standard \
+        --public-ip-address "$APP_PUBLIC_IP_NAME" \
         --output table 2>&1)
     VM_CREATE_EXIT_CODE=$?
     set -e
@@ -203,11 +218,27 @@ for SIZE in "${VM_SIZE_CANDIDATES[@]}"; do
     exit 1
 done
 
+
 if [ "$VM_CREATED" != true ]; then
     echo -e "${RED}❌ Unable to create VM: no candidate sizes are currently available in $LOCATION.${NC}"
     echo "Tip: Change LOCATION in this script or add additional VM sizes to VM_SIZE_CANDIDATES."
     exit 1
 fi
+
+# Wait for VM resource to be available (Azure eventual consistency)
+VM_WAIT_TIMEOUT=180 # seconds
+VM_WAIT_INTERVAL=5
+VM_WAIT_ELAPSED=0
+echo "Waiting for VM resource to become available..."
+while ! az vm show --resource-group "$RESOURCE_GROUP" --name "$VM_NAME" &> /dev/null; do
+    sleep $VM_WAIT_INTERVAL
+    VM_WAIT_ELAPSED=$((VM_WAIT_ELAPSED + VM_WAIT_INTERVAL))
+    if [ $VM_WAIT_ELAPSED -ge $VM_WAIT_TIMEOUT ]; then
+        echo -e "${RED}❌ Timed out waiting for VM resource to become available in Azure.${NC}"
+        exit 1
+    fi
+done
+echo -e "${GREEN}✅ VM resource is now available in Azure${NC}"
 
 # Open required ports
 echo ""
@@ -247,6 +278,29 @@ APP_PRIVATE_IP=$(az vm show \
     --query privateIps \
     --output tsv)
 
+APP_NIC_ID=$(az vm show \
+    --resource-group "$RESOURCE_GROUP" \
+    --name "$VM_NAME" \
+    --query "networkProfile.networkInterfaces[0].id" \
+    --output tsv)
+
+APP_NIC_NAME=$(az network nic show \
+    --ids "$APP_NIC_ID" \
+    --query name \
+    --output tsv)
+
+APP_IPCONFIG_NAME=$(az network nic show \
+    --ids "$APP_NIC_ID" \
+    --query "ipConfigurations[0].name" \
+    --output tsv)
+
+az network nic ip-config update \
+    --resource-group "$RESOURCE_GROUP" \
+    --nic-name "$APP_NIC_NAME" \
+    --name "$APP_IPCONFIG_NAME" \
+    --private-ip-address "$APP_PRIVATE_IP" \
+    --output table
+
 # Create Database Virtual Machine
 echo ""
 echo "=========================================="
@@ -255,12 +309,6 @@ echo "=========================================="
 echo "DB VM Name: $DB_VM_NAME"
 echo "Size: $DB_VM_SIZE"
 echo "Admin User: $ADMIN_USERNAME"
-
-APP_NIC_ID=$(az vm show \
-    --resource-group "$RESOURCE_GROUP" \
-    --name "$VM_NAME" \
-    --query "networkProfile.networkInterfaces[0].id" \
-    --output tsv)
 
 APP_SUBNET_ID=$(az network nic show \
     --ids "$APP_NIC_ID" \
@@ -331,6 +379,23 @@ DB_PRIVATE_IP=$(az vm show \
     --show-details \
     --query privateIps \
     --output tsv)
+
+DB_NIC_NAME=$(az network nic show \
+    --ids "$DB_NIC_ID" \
+    --query name \
+    --output tsv)
+
+DB_IPCONFIG_NAME=$(az network nic show \
+    --ids "$DB_NIC_ID" \
+    --query "ipConfigurations[0].name" \
+    --output tsv)
+
+az network nic ip-config update \
+    --resource-group "$RESOURCE_GROUP" \
+    --nic-name "$DB_NIC_NAME" \
+    --name "$DB_IPCONFIG_NAME" \
+    --private-ip-address "$DB_PRIVATE_IP" \
+    --output table
 
 DB_PUBLIC_IP=$(az vm show \
     --resource-group "$RESOURCE_GROUP" \
