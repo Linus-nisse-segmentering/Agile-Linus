@@ -1,4 +1,15 @@
 services:
+  db:
+    image: postgres:15-alpine
+    container_name: sinatra-db
+    environment:
+      - POSTGRES_DB=recipe_cookbook
+      - POSTGRES_USER=recipe_user
+      - POSTGRES_PASSWORD=recipe_pass
+    volumes:
+      - recipe_db_data_v2:/var/lib/postgresql/data
+    restart: unless-stopped
+
   app:
     image: ghcr.io/linus-nisse-segmentering/agile-linus:latest
     container_name: sinatra-app
@@ -6,12 +17,14 @@ services:
       - "1010"
     environment:
       - RACK_ENV=production
-      - DB_HOST=${DB_HOST}
-      - DB_PORT=${DB_PORT:-5432}
-      - DB_NAME=${DB_NAME}
-      - DB_USER=${DB_USER}
-      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NAME=recipe_cookbook
+      - DB_USER=recipe_user
+      - DB_PASSWORD=recipe_pass
       - DB_SSLMODE=${DB_SSLMODE:-prefer}
+    depends_on:
+      - db
     restart: unless-stopped
 
   nginx:
@@ -24,3 +37,6 @@ services:
     volumes:
       - ./infrastructure/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
     restart: unless-stopped
+
+volumes:
+  recipe_db_data_v2:
