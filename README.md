@@ -1,5 +1,10 @@
 # Recipe Cookbook - Ruby/Sinatra Edition
 
+![Quality Pipeline](https://github.com/Linus-nisse-segmentering/Agile-Linus/actions/workflows/quality.yml/badge.svg)
+![CD Pipeline](https://github.com/Linus-nisse-segmentering/Agile-Linus/actions/workflows/deploy-azure-vm.yml/badge.svg)
+![Linted with RuboCop](https://img.shields.io/badge/lint-RuboCop-black)
+![Tested with RSpec](https://img.shields.io/badge/test-RSpec-red)
+
 A recipe cookbook web application built with Ruby and the Sinatra framework, featuring a retro 90s-style interface and a RESTful API.
 
 ## Features
@@ -7,7 +12,7 @@ A recipe cookbook web application built with Ruby and the Sinatra framework, fea
 - Browse recipes with ingredients and tags
 - View detailed recipe instructions
 - RESTful API for recipes, ingredients, tags, and users
-- SQLite database with full schema and seed data
+- PostgreSQL database with full schema and seed data
 - Retro 90s web design aesthetic
 
 ## Prerequisites
@@ -24,9 +29,11 @@ A recipe cookbook web application built with Ruby and the Sinatra framework, fea
 docker compose up --build
 ```
 
-2. The application will be available at: http://localhost:3000
+2. The application will be available at: http://localhost through the nginx reverse proxy.
 
-3. To stop the application:
+3. The app container still listens internally on port 1010 for direct container-to-container traffic.
+
+4. To stop the application:
 ```bash
 docker compose down
 ```
@@ -49,15 +56,26 @@ docker compose logs -f
 ├── config.ru           # Rack configuration
 ├── Gemfile             # Ruby dependencies
 ├── db/
-│   ├── schema.sql      # Database schema
+│   ├── schema.sql      # SQLite schema (legacy)
+│   ├── schema.pg.sql   # PostgreSQL schema
 │   ├── seeds.sql       # Seed data
-│   └── setup.rb        # Database setup script
+│   ├── setup.rb        # SQLite setup script (legacy)
+│   └── migrate_sqlite_to_postgres.rb # One-time migration script
 ├── views/
 │   ├── layout.erb      # Base layout template
 │   ├── home.erb        # Home page template
 │   └── recipe_detail.erb  # Recipe detail template
 └── static/
     └── style.css       # Stylesheet
+├── infrastructure/
+│   ├── azure-setup.sh  # Azure VM provisioning helper
+│   └── nginx/
+│       └── default.conf # nginx reverse proxy configuration
+├── docs/
+│   └── deployment-strategy.md # Deployment strategy, SLA, and DoD
+└── .github/
+    └── workflows/
+        └── cd.yml     # Continuous deployment pipeline
 ```
 
 ## API Endpoints
@@ -98,7 +116,7 @@ docker compose logs -f
 
 ## Database Schema
 
-The application uses SQLite3 with the following tables:
+The application uses PostgreSQL with the following tables:
 - `users` - User accounts
 - `recipes` - Recipe information
 - `ingredients` - Ingredient master list
@@ -113,6 +131,67 @@ The database is automatically set up when the Docker container starts. If you ne
 docker compose down
 docker compose up --build
 ```
+
+## Database Configuration
+
+The app uses PostgreSQL. These environment variables configure the connection:
+
+- `DB_HOST` (default: `localhost`)
+- `DB_PORT` (default: `5432`)
+- `DB_NAME` (default: `recipe_cookbook`)
+- `DB_USER` (default: `recipe_user`)
+- `DB_PASSWORD` (default: `recipe_pass`)
+- `DB_SSLMODE` (default: `prefer`)
+
+Set `DB_INIT=true` to create the schema and seed the database on startup. Use it once for new databases and then remove it for shared environments.
+
+## Migrating from SQLite to PostgreSQL
+
+If you have existing SQLite data in `app.db`, migrate it into PostgreSQL with:
+
+```bash
+DB_HOST=localhost \
+DB_PORT=5432 \
+DB_NAME=recipe_cookbook \
+DB_USER=recipe_user \
+DB_PASSWORD=recipe_pass \
+SQLITE_PATH=./app.db \
+ruby db/migrate_sqlite_to_postgres.rb
+```
+
+If the Postgres database already contains data, set `PG_CLEAR=true` to truncate tables before migrating.
+
+## Quality and Testing
+
+- Test framework: RSpec + Rack::Test
+- Linting: RuboCop
+- CI quality pipeline: `.github/workflows/quality.yml`
+- Shared Git hooks: `.githooks/pre-commit`
+
+Run checks locally:
+
+```bash
+bundle exec rubocop
+bundle exec rspec
+```
+
+Enable shared Git hooks for your clone:
+
+```powershell
+./scripts/setup-git-hooks.ps1
+```
+
+See [docs/software-quality.md](docs/software-quality.md) for the full quality workflow and standards.
+
+## Deployment Strategy
+
+Deployment is container-based: nginx receives public traffic on port 80 and proxies it to the Sinatra app on port 1010. The Azure VM setup script prepares the host for this compose stack, and the GitHub Actions workflow performs the build-and-deploy flow on `main`.
+
+## SLA and Definition of Done
+
+The service target for this educational deployment is 99.5% availability during the demo window, with a recovery target of 15 minutes for a failed release. A deployment is done only when the compose stack validates, nginx serves the application, and `/metrics` remains reachable for monitoring.
+
+See [docs/deployment-strategy.md](docs/deployment-strategy.md) for the full rollout and rollback notes.
 
 ## License
 

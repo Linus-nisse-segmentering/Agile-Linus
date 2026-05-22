@@ -1,16 +1,48 @@
 services:
+  db:
+    image: postgres:15-alpine
+    container_name: sinatra-db
+    environment:
+      - POSTGRES_DB=recipe_cookbook
+      - POSTGRES_USER=recipe_user
+      - POSTGRES_PASSWORD=recipe_pass
+    volumes:
+      - recipe_db_data_v2:/var/lib/postgresql/data
+    restart: unless-stopped
+
   app:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: sinatra-app
-    ports:
-      - "1010:1010"
+    expose:
+      - "1010"
     environment:
       - RACK_ENV=production
-      - DATABASE=app.db
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NAME=recipe_cookbook
+      - DB_USER=recipe_user
+      - DB_PASSWORD=recipe_pass
+      - DB_INIT=true
+    depends_on:
+      - db
     volumes:
       - ./db:/app/db
       - ./static:/app/static
       - ./views:/app/views
     restart: unless-stopped
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: sinatra-nginx
+    depends_on:
+      - app
+    ports:
+      - "80:80"
+    volumes:
+      - ./infrastructure/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    restart: unless-stopped
+
+volumes:
+  recipe_db_data_v2:

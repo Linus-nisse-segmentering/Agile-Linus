@@ -3,26 +3,92 @@
 require 'sinatra'
 require 'sinatra/json'
 require 'sinatra/content_for'
-require 'sqlite3'
+require 'pg'
 require 'json'
+require 'prometheus/client'
+require 'prometheus/client/formats/text'
 
 # Configure Sinatra
 set :port, 1010
 set :bind, '0.0.0.0'
 set :public_folder, 'static'
 
-# Database configuration
-DATABASE = 'app.db'
+REGISTRY = Prometheus::Client.registry
+HTTP_REQUESTS_TOTAL = REGISTRY.counter(
+  :http_requests_total,
+  docstring: 'Total number of HTTP requests',
+  labels: %i[method path status],
+)
+HTTP_REQUEST_DURATION_SECONDS = REGISTRY.histogram(
+  :http_request_duration_seconds,
+  docstring: 'HTTP request duration in seconds',
+  labels: %i[method path],
+  buckets: [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5],
+)
 
-# Helper method to get database connection
-def get_db_connection
-  db = SQLite3::Database.new(DATABASE)
-  db.results_as_hash = true
-  db.execute('PRAGMA foreign_keys = ON')
-  db
+def metric_path(path)
+  path.gsub(%r{/\d+}, '/:id')
 end
 
-# Helper method to convert SQLite rows to proper hashes
+before do
+  request.env['metrics.request_started_at'] = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+end
+
+after do
+  started_at = request.env['metrics.request_started_at']
+  next unless started_at
+
+  labels = {
+    method: request.request_method,
+    path: metric_path(request.path_info),
+  }
+
+  HTTP_REQUESTS_TOTAL.increment(labels: labels.merge(status: response.status.to_s))
+  HTTP_REQUEST_DURATION_SECONDS.observe(
+    Process.clock_gettime(Process::CLOCK_MONOTONIC) - started_at,
+    labels: labels,
+  )
+end
+
+# Database configuration
+DB_HOST = ENV.fetch('DB_HOST', 'localhost')
+DB_PORT = Integer(ENV.fetch('DB_PORT', '5432'))
+DB_NAME = ENV.fetch('DB_NAME', 'recipe_cookbook')
+DB_USER = ENV.fetch('DB_USER', 'recipe_user')
+DB_PASSWORD = ENV.fetch('DB_PASSWORD', 'recipe_pass')
+DB_SSLMODE = ENV.fetch('DB_SSLMODE', 'prefer')
+
+# Helper method to get database connection
+def db_connection
+  if ENV['DATABASE_URL'] && !ENV['DATABASE_URL'].empty?
+    PG.connect(ENV['DATABASE_URL'])
+  else
+    PG.connect(
+      host: DB_HOST,
+      port: DB_PORT,
+      dbname: DB_NAME,
+      user: DB_USER,
+      password: DB_PASSWORD,
+      sslmode: DB_SSLMODE,
+    )
+  end
+end
+
+def db_exec(db, sql, params = [])
+  db.exec_params(sql, params)
+end
+
+def db_first_row(db, sql, params = [])
+  result = db.exec_params(sql, params)
+  result.ntuples.positive? ? result[0] : nil
+end
+
+def db_first_value(db, sql, params = [])
+  row = db_first_row(db, sql, params)
+  row&.values&.first
+end
+
+# Helper method to convert rows to proper hashes
 def row_to_hash(row)
   return nil if row.nil?
 
@@ -33,19 +99,26 @@ def rows_to_hashes(rows)
   rows.map { |row| row_to_hash(row) }
 end
 
+get '/metrics' do
+  content_type 'text/plain; version=0.0.4; charset=utf-8'
+  Prometheus::Client::Formats::Text.marshal(REGISTRY)
+end
+
 # Initialize database (called on startup)
 def init_db
-  db = get_db_connection
+  return unless ENV.fetch('DB_INIT', 'false').downcase == 'true'
+
+  db = db_connection
 
   # Create tables
-  db.execute_batch(File.read('db/schema.sql'))
+  db.exec(File.read('db/schema.pg.sql'))
 
   # Check if we need to seed
-  recipe_count = db.get_first_value('SELECT COUNT(*) FROM recipes')
+  recipe_count = db_first_value(db, 'SELECT COUNT(*) FROM recipes')
 
   if recipe_count.to_i.zero?
     puts 'Seeding database...'
-    db.execute_batch(File.read('db/seeds.sql'))
+    db.exec(File.read('db/seeds.sql'))
   end
 
   db.close
@@ -62,16 +135,16 @@ end
 # Home page - display all recipes
 get '/' do
   puts 'Route invoked: GET /'
-  db = get_db_connection
+  db = db_connection
 
-  recipes = db.execute('SELECT id, title, time_minutes, price, link FROM recipes')
-
+  recipes = db_exec(db, 'SELECT id, title, time_minutes, price, link FROM recipes')
   recipes_with_tags = recipes.map do |recipe|
-    tags = db.execute(
+    tags = db_exec(
+      db,
       'SELECT t.id, t.name FROM tags t
        JOIN recipe_tags rt ON t.id = rt.tag_id
-       WHERE rt.recipe_id = ?',
-      recipe['id']
+       WHERE rt.recipe_id = $1',
+      [recipe['id']],
     )
 
     {
@@ -80,53 +153,12 @@ get '/' do
       'time_minutes' => recipe['time_minutes'],
       'price' => recipe['price'],
       'link' => recipe['link'] || '',
-      'tags' => rows_to_hashes(tags)
+      'tags' => rows_to_hashes(tags),
     }
   end
 
   db.close
   erb :home, locals: { recipes: recipes_with_tags }
-end
-
-# Recipe detail page
-get '/recipes/:id/' do
-  puts 'Route invoked: GET /recipes/:id/'
-  db = get_db_connection
-  id = params[:id]
-
-  recipe = db.get_first_row(
-    'SELECT id, title, time_minutes, price, link, description FROM recipes WHERE id = ?',
-    id
-  )
-
-  ingredients = db.execute(
-    'SELECT i.id, i.name, ri.amount, ri.unit FROM ingredients i
-     JOIN recipe_ingredients ri ON i.id = ri.ingredient_id
-     WHERE ri.recipe_id = ?',
-    id
-  )
-
-  tags = db.execute(
-    'SELECT t.id, t.name FROM tags t
-     JOIN recipe_tags rt ON t.id = rt.tag_id
-     WHERE rt.recipe_id = ?',
-    id
-  )
-
-  db.close
-
-  recipe_data = {
-    'id' => recipe['id'],
-    'title' => recipe['title'],
-    'time_minutes' => recipe['time_minutes'],
-    'price' => recipe['price'],
-    'link' => recipe['link'] || '',
-    'description' => recipe['description'] || '',
-    'ingredients' => rows_to_hashes(ingredients),
-    'tags' => rows_to_hashes(tags)
-  }
-
-  erb :recipe_detail, locals: { recipe: recipe_data }
 end
 
 # ============================================
@@ -136,19 +168,69 @@ end
 # Serve OpenAPI schema
 get '/api/schema' do
   content_type 'application/yaml'
-  File.read('api-schema.yaml')
+  File.read('yml/api-schema.yaml')
 end
 
 # Swagger UI endpoint
 get '/apidocs' do
-  html = <<~HTML
+  swagger_ui_html
+end
+
+def ingredients_for_recipe(db, id)
+  db_exec(
+    db,
+    'SELECT i.id, i.name, ri.amount, ri.unit FROM ingredients i
+     JOIN recipe_ingredients ri ON i.id = ri.ingredient_id
+     WHERE ri.recipe_id = $1',
+    [id],
+  )
+end
+
+def tags_for_recipe(db, id)
+  db_exec(
+    db,
+    'SELECT t.id, t.name FROM tags t
+     JOIN recipe_tags rt ON t.id = rt.tag_id
+     WHERE rt.recipe_id = $1',
+    [id],
+  )
+end
+
+def fetch_recipe_data(id)
+  db = db_connection
+
+  recipe = db_first_row(
+    db,
+    'SELECT id, title, time_minutes, price, link, description FROM recipes WHERE id = $1',
+    [id],
+  )
+
+  ingredients = ingredients_for_recipe(db, id)
+  tags = tags_for_recipe(db, id)
+
+  db.close
+
+  {
+    'id' => recipe['id'],
+    'title' => recipe['title'],
+    'time_minutes' => recipe['time_minutes'],
+    'price' => recipe['price'],
+    'link' => recipe['link'] || '',
+    'description' => recipe['description'] || '',
+    'ingredients' => rows_to_hashes(ingredients),
+    'tags' => rows_to_hashes(tags),
+  }
+end
+
+def swagger_ui_html
+  <<~HTML
     <!DOCTYPE html>
     <html lang="en">
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>Recipe Cookbook API - Swagger UI</title>
-      <link rel="stylesheet" type="text/css" href="https://unpkg.com/swagger-ui-dist@5.11.0/swagger-ui.css">
+      <link rel="stylesheet" type="text/css" href="/swagger-ui/swagger-ui.css">
       <style>
         html { box-sizing: border-box; overflow: -moz-scrollbars-vertical; overflow-y: scroll; }
         *, *:before, *:after { box-sizing: inherit; }
@@ -157,8 +239,8 @@ get '/apidocs' do
     </head>
     <body>
       <div id="swagger-ui"></div>
-      <script src="https://unpkg.com/swagger-ui-dist@5.11.0/swagger-ui-bundle.js"></script>
-      <script src="https://unpkg.com/swagger-ui-dist@5.11.0/swagger-ui-standalone-preset.js"></script>
+      <script src="/swagger-ui/swagger-ui-bundle.js"></script>
+      <script src="/swagger-ui/swagger-ui-standalone-preset.js"></script>
       <script>
         window.onload = function() {
           window.ui = SwaggerUIBundle({
@@ -179,7 +261,6 @@ get '/apidocs' do
     </body>
     </html>
   HTML
-  html
 end
 
 # ============================================
@@ -199,7 +280,7 @@ get '/api' do
          ingredients_url: 'http://localhost:3000/api/recipe/ingredients/{?assigned_only}',
          ingredient_url: 'http://localhost:3000/api/recipe/ingredients/{id}/',
          tags_url: 'http://localhost:3000/api/recipe/tags/{?assigned_only}',
-         tag_url: 'http://localhost:3000/api/recipe/tags/{id}/'
+         tag_url: 'http://localhost:3000/api/recipe/tags/{id}/',
        })
 end
 
@@ -212,18 +293,18 @@ post '/api/user/create/' do
   puts 'Route invoked: POST /api/user/create/'
   data = JSON.parse(request.body.read)
 
-  db = get_db_connection
-  db.execute(
-    'INSERT INTO users (email, password, name) VALUES (?, ?, ?)',
-    data['email'], data['password'], data['name']
+  db = db_connection
+  db_exec(
+    db,
+    'INSERT INTO users (email, password, name) VALUES ($1, $2, $3) RETURNING id',
+    [data['email'], data['password'], data['name']],
   )
-  db.last_insert_row_id
   db.close
 
   status 201
   json({
          email: data['email'],
-         name: data['name']
+         name: data['name'],
        })
 end
 
@@ -232,7 +313,7 @@ get '/api/user/me/' do
   puts 'Route invoked: GET /api/user/me/'
   json({
          email: 'user@example.com',
-         name: 'Example User'
+         name: 'Example User',
        })
 end
 
@@ -243,7 +324,7 @@ put '/api/user/me/' do
 
   json({
          email: data['email'],
-         name: data['name']
+         name: data['name'],
        })
 end
 
@@ -254,7 +335,7 @@ patch '/api/user/me/' do
 
   response = {
     email: data['email'] || 'user@example.com',
-    name: data['name'] || 'Example User'
+    name: data['name'] || 'Example User',
   }
 
   json(response)
@@ -267,7 +348,7 @@ post '/api/user/token/' do
 
   json({
          email: data['email'],
-         password: data['password']
+         password: data['password'],
        })
 end
 
@@ -279,22 +360,22 @@ end
 get '/api/recipe/recipes/' do
   puts 'Route invoked: GET /api/recipe/recipes/'
 
-  db = get_db_connection
-  recipes = db.execute('SELECT id, title, time_minutes, price, link FROM recipes')
+  db = db_connection
+  recipes = db_exec(db, 'SELECT id, title, time_minutes, price, link FROM recipes')
 
   result = recipes.map do |recipe|
-    ingredients = db.execute(
+    ingredients = db_exec(
       'SELECT i.id, i.name, ri.amount, ri.unit FROM ingredients i
        JOIN recipe_ingredients ri ON i.id = ri.ingredient_id
-       WHERE ri.recipe_id = ?',
-      recipe['id']
+       WHERE ri.recipe_id = $1',
+      [recipe['id']],
     )
 
-    tags = db.execute(
+    tags = db_exec(
       'SELECT t.id, t.name FROM tags t
        JOIN recipe_tags rt ON t.id = rt.tag_id
-       WHERE rt.recipe_id = ?',
-      recipe['id']
+       WHERE rt.recipe_id = $1',
+      [recipe['id']],
     )
 
     {
@@ -304,7 +385,7 @@ get '/api/recipe/recipes/' do
       'price' => recipe['price'],
       'link' => recipe['link'] || '',
       'ingredients' => rows_to_hashes(ingredients),
-      'tags' => rows_to_hashes(tags)
+      'tags' => rows_to_hashes(tags),
     }
   end
 
@@ -326,7 +407,7 @@ post '/api/recipe/recipes/' do
          link: data['link'] || '',
          tags: data['tags'] || [],
          ingredients: data['ingredients'] || [],
-         description: data['description'] || ''
+         description: data['description'] || '',
        })
 end
 
@@ -335,39 +416,7 @@ get '/api/recipe/recipes/:id/' do
   puts 'Route invoked: GET /api/recipe/recipes/:id/'
   id = params[:id]
 
-  db = get_db_connection
-
-  recipe = db.get_first_row(
-    'SELECT id, title, time_minutes, price, link, description FROM recipes WHERE id = ?',
-    id
-  )
-
-  ingredients = db.execute(
-    'SELECT i.id, i.name, ri.amount, ri.unit FROM ingredients i
-     JOIN recipe_ingredients ri ON i.id = ri.ingredient_id
-     WHERE ri.recipe_id = ?',
-    id
-  )
-
-  tags = db.execute(
-    'SELECT t.id, t.name FROM tags t
-     JOIN recipe_tags rt ON t.id = rt.tag_id
-     WHERE rt.recipe_id = ?',
-    id
-  )
-
-  db.close
-
-  json({
-         id: recipe['id'],
-         title: recipe['title'],
-         time_minutes: recipe['time_minutes'],
-         price: recipe['price'],
-         link: recipe['link'] || '',
-         description: recipe['description'] || '',
-         ingredients: rows_to_hashes(ingredients),
-         tags: rows_to_hashes(tags)
-       })
+  json(fetch_recipe_data(id))
 end
 
 # Update a recipe (full update)
@@ -384,7 +433,7 @@ put '/api/recipe/recipes/:id/' do
          link: data['link'] || '',
          tags: data['tags'] || [],
          ingredients: data['ingredients'] || [],
-         description: data['description'] || ''
+         description: data['description'] || '',
        })
 end
 
@@ -402,7 +451,7 @@ patch '/api/recipe/recipes/:id/' do
     link: data['link'] || '',
     tags: data['tags'] || [],
     ingredients: data['ingredients'] || [],
-    description: data['description'] || ''
+    description: data['description'] || '',
   }
 
   json(response)
@@ -413,13 +462,10 @@ delete '/api/recipe/recipes/:id/' do
   puts 'Route invoked: DELETE /api/recipe/recipes/:id/'
   id = params[:id]
 
-  db = get_db_connection
-
-  # Enable foreign keys to ensure CASCADE delete works
-  db.execute('PRAGMA foreign_keys = ON')
+  db = db_connection
 
   # Delete the recipe (CASCADE will handle recipe_ingredients and recipe_tags)
-  db.execute('DELETE FROM recipes WHERE id = ?', id)
+  db_exec(db, 'DELETE FROM recipes WHERE id = $1', [id])
   db.close
 
   status 204
@@ -432,7 +478,7 @@ post '/api/recipe/recipes/:id/upload-image/' do
 
   json({
          id: id.to_i,
-         image: 'http://example.com/image.jpg'
+         image: 'http://example.com/image.jpg',
        })
 end
 
@@ -444,8 +490,8 @@ end
 get '/api/recipe/ingredients/' do
   puts 'Route invoked: GET /api/recipe/ingredients/'
 
-  db = get_db_connection
-  ingredients = db.execute('SELECT id, name FROM ingredients')
+  db = db_connection
+  ingredients = db_exec(db, 'SELECT id, name FROM ingredients')
   db.close
 
   result = rows_to_hashes(ingredients)
@@ -460,7 +506,7 @@ put '/api/recipe/ingredients/:id/' do
 
   json({
          id: id.to_i,
-         name: data['name']
+         name: data['name'],
        })
 end
 
@@ -472,7 +518,7 @@ patch '/api/recipe/ingredients/:id/' do
 
   json({
          id: id.to_i,
-         name: data['name'] || 'Sample Ingredient'
+         name: data['name'] || 'Sample Ingredient',
        })
 end
 
@@ -481,8 +527,8 @@ delete '/api/recipe/ingredients/:id/' do
   puts 'Route invoked: DELETE /api/recipe/ingredients/:id/'
   id = params[:id]
 
-  db = get_db_connection
-  db.execute('DELETE FROM ingredients WHERE id = ?', id)
+  db = db_connection
+  db_exec(db, 'DELETE FROM ingredients WHERE id = $1', [id])
   db.close
 
   status 204
@@ -496,8 +542,8 @@ end
 get '/api/recipe/tags/' do
   puts 'Route invoked: GET /api/recipe/tags/'
 
-  db = get_db_connection
-  tags = db.execute('SELECT id, name FROM tags')
+  db = db_connection
+  tags = db_exec(db, 'SELECT id, name FROM tags')
   db.close
 
   result = rows_to_hashes(tags)
@@ -512,7 +558,7 @@ put '/api/recipe/tags/:id/' do
 
   json({
          id: id.to_i,
-         name: data['name']
+         name: data['name'],
        })
 end
 
@@ -524,7 +570,7 @@ patch '/api/recipe/tags/:id/' do
 
   json({
          id: id.to_i,
-         name: data['name'] || 'Sample Tag'
+         name: data['name'] || 'Sample Tag',
        })
 end
 
@@ -533,8 +579,8 @@ delete '/api/recipe/tags/:id/' do
   puts 'Route invoked: DELETE /api/recipe/tags/:id/'
   id = params[:id]
 
-  db = get_db_connection
-  db.execute('DELETE FROM tags WHERE id = ?', id)
+  db = db_connection
+  db_exec(db, 'DELETE FROM tags WHERE id = $1', [id])
   db.close
 
   status 204

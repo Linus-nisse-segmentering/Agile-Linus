@@ -1,7 +1,8 @@
 #!/bin/bash
 
+
 # Azure Resource Teardown Script
-# This script deletes the entire resource group and all its resources
+# This script deletes all resources in the resource group except public IPs and VNet/subnet (to preserve static IPs)
 
 set -e  # Exit on any error
 
@@ -53,16 +54,34 @@ if ! az group exists --name "$RESOURCE_GROUP" | grep -q "true"; then
     exit 0
 fi
 
+
 # Show what will be deleted
 echo "=========================================="
-echo "Resources to be deleted:"
+echo "Resources to be deleted (except static IPs and VNet):"
 echo "=========================================="
 echo ""
-az resource list --resource-group "$RESOURCE_GROUP" --output table
+
+# List resources to be deleted
+echo "Virtual Machines:"
+az vm list --resource-group "$RESOURCE_GROUP" --query "[].name" -o tsv
+echo ""
+echo "Managed Disks:"
+az disk list --resource-group "$RESOURCE_GROUP" --query "[].name" -o tsv
+echo ""
+echo "Network Interfaces:"
+az network nic list --resource-group "$RESOURCE_GROUP" --query "[].name" -o tsv
+echo ""
+echo "Network Security Groups:"
+az network nsg list --resource-group "$RESOURCE_GROUP" --query "[].name" -o tsv
+echo ""
+echo "Storage Accounts:"
+az storage account list --resource-group "$RESOURCE_GROUP" --query "[].name" -o tsv
 echo ""
 
+
 # Confirmation prompt
-echo -e "${RED}⚠️  WARNING: This will permanently delete all resources in '$RESOURCE_GROUP'${NC}"
+echo -e "${RED}⚠️  WARNING: This will permanently delete all VMs, disks, NICs, NSGs, and storage in '$RESOURCE_GROUP'${NC}"
+echo -e "${YELLOW}Public IPs and VNet will be preserved for static IPs.${NC}"
 echo ""
 read -p "Are you sure you want to continue? (yes/NO): " -r
 echo
@@ -83,50 +102,52 @@ if [[ $REPLY != "$RESOURCE_GROUP" ]]; then
     exit 1
 fi
 
-# Delete resource group
 echo ""
 echo "=========================================="
-echo "Deleting Resource Group"
+echo "Deleting Resources (except static IPs and VNet)"
 echo "=========================================="
 echo "Resource Group: $RESOURCE_GROUP"
 echo "This may take several minutes..."
 echo ""
 
-az group delete \
-    --name "$RESOURCE_GROUP" \
-    --yes \
-    --no-wait
+# Delete VMs
+for vm in $(az vm list --resource-group "$RESOURCE_GROUP" --query "[].name" -o tsv); do
+    echo "Deleting VM: $vm"
+    az vm delete --resource-group "$RESOURCE_GROUP" --name "$vm" --yes
+done
 
-echo -e "${GREEN}✅ Deletion initiated${NC}"
+# Delete managed disks
+for disk in $(az disk list --resource-group "$RESOURCE_GROUP" --query "[].name" -o tsv); do
+    echo "Deleting Disk: $disk"
+    az disk delete --resource-group "$RESOURCE_GROUP" --name "$disk" --yes
+done
+
+# Delete NICs
+for nic in $(az network nic list --resource-group "$RESOURCE_GROUP" --query "[].name" -o tsv); do
+    echo "Deleting NIC: $nic"
+    az network nic delete --resource-group "$RESOURCE_GROUP" --name "$nic"
+done
+
+# Delete NSGs
+for nsg in $(az network nsg list --resource-group "$RESOURCE_GROUP" --query "[].name" -o tsv); do
+    echo "Deleting NSG: $nsg"
+    az network nsg delete --resource-group "$RESOURCE_GROUP" --name "$nsg"
+done
+
+# Delete storage accounts
+for sa in $(az storage account list --resource-group "$RESOURCE_GROUP" --query "[].name" -o tsv); do
+    echo "Deleting Storage Account: $sa"
+    az storage account delete --resource-group "$RESOURCE_GROUP" --name "$sa" --yes
+done
+
+echo -e "${GREEN}✅ Resource deletion complete (static IPs and VNet preserved)${NC}"
 echo ""
-echo "The resource group is being deleted in the background."
-echo "You can check the status with:"
-echo "   ${YELLOW}az group exists --name $RESOURCE_GROUP${NC}"
-echo ""
-echo "Or wait for completion with:"
-echo "   ${YELLOW}az group wait --name $RESOURCE_GROUP --deleted${NC}"
-echo ""
-
-# Optional: Wait for deletion to complete
-read -p "Do you want to wait for deletion to complete? (y/N): " -n 1 -r
-echo
-
-if [[ $REPLY =~ ^[Yy]$ ]]; then
-    echo ""
-    echo "Waiting for deletion to complete..."
-    if az group wait --name "$RESOURCE_GROUP" --deleted --timeout 300; then
-        echo -e "${GREEN}✅ Resource group successfully deleted${NC}"
-    else
-        echo -e "${YELLOW}⚠️  Deletion is taking longer than expected${NC}"
-        echo "Check status in Azure Portal or run:"
-        echo "   az group exists --name $RESOURCE_GROUP"
-    fi
-fi
-
+echo "You may need to manually check for any remaining resources."
+echo "Public IPs and VNet/subnet are still present for static IP stability."
 echo ""
 echo "=========================================="
 echo "Teardown Complete! 🗑️"
 echo "=========================================="
 echo ""
-echo "All resources in '$RESOURCE_GROUP' have been deleted (or deletion is in progress)."
+echo "All deletable resources in '$RESOURCE_GROUP' have been deleted. Static IPs and VNet are preserved."
 echo ""
