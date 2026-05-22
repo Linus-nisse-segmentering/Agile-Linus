@@ -48,6 +48,25 @@ docker compose up -d
 docker compose logs -f
 ```
 
+## Monitoring
+
+Prometheus scrapes the backend through nginx on a shared Docker network, and Grafana is pre-provisioned with Prometheus as its datasource.
+
+Start the monitoring stack in a second terminal:
+
+```bash
+docker compose -f monitoring/docker-compose.yml up -d
+```
+
+The shared network is created automatically by either compose stack, so you can start the app or monitoring stack first.
+
+Then open:
+
+- Prometheus: http://localhost:9090
+- Grafana: http://localhost:3000
+
+Grafana uses `admin` as the default password unless you set `GRAFANA_ADMIN_PASSWORD`.
+
 ## Project Structure
 
 ```
