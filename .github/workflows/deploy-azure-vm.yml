@@ -88,5 +88,6 @@ jobs:
             cd ~/app
             sudo docker compose pull
             sudo docker compose up -d --wait --wait-timeout 180
+            sudo docker compose restart nginx
             sudo docker compose ps
             sudo docker image prune -f
