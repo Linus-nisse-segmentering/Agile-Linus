@@ -35,6 +35,11 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
+# Avoid Git Bash path mangling of Azure resource IDs
+if [[ -n "$MSYSTEM" ]]; then
+    export MSYS2_ARG_CONV_EXCL="*"
+fi
+
 # Configuration variables - CUSTOMIZE THESE
 RESOURCE_GROUP="recipe-cookbook-rg"
 LOCATION="swedencentral"  # Change to your preferred region (e.g., "eastus", "northeurope")
@@ -42,6 +47,7 @@ VM_NAME="recipe-cookbook-vm"
 VM_SIZE="Standard_B1s"  # Change to "Standard_B2s" for better performance
 ADMIN_USERNAME="azureuser"
 SSH_KEY_PATH="$HOME/.ssh/id_rsa.pub"   # Change this path to point at your public key - (your private key should be in the same folder, and should be set in SSH_PRIVATE_KEY on GitHub)
+SSH_PRIVATE_KEY_PATH="${SSH_KEY_PATH%.pub}"
 
 # Database VM configuration
 DB_VM_NAME="recipe-cookbook-db-vm"
@@ -49,6 +55,7 @@ DB_VM_SIZE="Standard_B1s"
 DB_NAME="recipe_cookbook"
 DB_USER="recipe_user"
 DB_PASSWORD="recipe_pass"
+
 
 # Disable all color output
 GREEN=''
@@ -87,11 +94,19 @@ fi
 echo ""
 if [ ! -f "$SSH_KEY_PATH" ]; then
     echo -e "${YELLOW}⚠️  SSH key not found at $SSH_KEY_PATH${NC}"
-    echo "Generating new SSH key..."
-    ssh-keygen -t rsa -b 4096 -f "${SSH_KEY_PATH%.pub}" -N "" -C "azure-vm-cicd"
+    echo "Generating new RSA SSH key..."
+    ssh-keygen -t rsa -b 4096 -f "$SSH_PRIVATE_KEY_PATH" -N "" -C "azure-vm-cicd"
     echo -e "${GREEN}✅ SSH key generated${NC}"
 else
-    echo -e "${GREEN}✅ SSH key found at $SSH_KEY_PATH${NC}"
+    if grep -q '^ssh-rsa ' "$SSH_KEY_PATH"; then
+        echo -e "${GREEN}✅ SSH key found at $SSH_KEY_PATH${NC}"
+    else
+        echo -e "${YELLOW}⚠️  SSH key is not RSA. Generating a dedicated RSA key for Azure...${NC}"
+        SSH_KEY_PATH="$HOME/.ssh/id_rsa_azure.pub"
+        SSH_PRIVATE_KEY_PATH="${SSH_KEY_PATH%.pub}"
+        ssh-keygen -t rsa -b 4096 -f "$SSH_PRIVATE_KEY_PATH" -N "" -C "azure-vm-cicd"
+        echo -e "${GREEN}✅ RSA SSH key generated at $SSH_KEY_PATH${NC}"
+    fi
 fi
 
 # Create resource group
@@ -164,7 +179,7 @@ for SIZE in "${VM_SIZE_CANDIDATES[@]}"; do
         --image "Canonical:0001-com-ubuntu-server-jammy:22_04-lts:latest" \
         --size "$SIZE" \
         --admin-username "$ADMIN_USERNAME" \
-        --ssh-key-values "$SSH_KEY_PATH" \
+        --ssh-key-values "$(cat "$SSH_KEY_PATH")" \
         --public-ip-sku Standard \
         --output table 2>&1)
     VM_CREATE_EXIT_CODE=$?
@@ -264,7 +279,7 @@ else
         --image "Canonical:0001-com-ubuntu-server-jammy:22_04-lts:latest" \
         --size "$DB_VM_SIZE" \
         --admin-username "$ADMIN_USERNAME" \
-        --ssh-key-values "$SSH_KEY_PATH" \
+        --ssh-key-values "$(cat "$SSH_KEY_PATH")" \
         --public-ip-sku Standard \
         --vnet-name "$VNET_NAME" \
         --subnet "$SUBNET_NAME" \
@@ -532,7 +547,7 @@ else
     echo "$VM_IP" | gh secret set SSH_HOST
     
     # Set SSH_PRIVATE_KEY secret
-    gh secret set SSH_PRIVATE_KEY < "${SSH_KEY_PATH%.pub}"
+    gh secret set SSH_PRIVATE_KEY < "$SSH_PRIVATE_KEY_PATH"
 
     # Set DB connection secrets
     echo "$DB_PRIVATE_IP" | gh secret set DB_HOST
