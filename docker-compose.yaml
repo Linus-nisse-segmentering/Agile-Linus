@@ -9,6 +9,12 @@ services:
     volumes:
       - recipe_db_data_v2:/var/lib/postgresql/data
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U recipe_user -d recipe_cookbook"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
   app:
     build:
@@ -26,18 +32,26 @@ services:
       - DB_PASSWORD=recipe_pass
       - DB_INIT=true
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     volumes:
       - ./db:/app/db
       - ./static:/app/static
       - ./views:/app/views
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "ruby -e \"require 'net/http'; res = Net::HTTP.get_response(URI('http://127.0.0.1:1010/metrics')); exit(res.is_a?(Net::HTTPSuccess) ? 0 : 1)\""]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
 
   nginx:
     image: nginx:1.27-alpine
     container_name: sinatra-nginx
     depends_on:
-      - app
+      app:
+        condition: service_healthy
     ports:
       - "80:80"
     volumes:
