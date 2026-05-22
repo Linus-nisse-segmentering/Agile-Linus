@@ -6,6 +6,7 @@ services:
       - POSTGRES_DB=recipe_cookbook
       - POSTGRES_USER=recipe_user
       - POSTGRES_PASSWORD=recipe_pass
+      - DB_INIT=true
     volumes:
       - recipe_db_data_v2:/var/lib/postgresql/data
     restart: unless-stopped
