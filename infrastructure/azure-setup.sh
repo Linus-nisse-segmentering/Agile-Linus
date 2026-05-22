@@ -42,7 +42,7 @@ fi
 
 # Configuration variables - CUSTOMIZE THESE
 RESOURCE_GROUP="recipe-cookbook-rg"
-LOCATION="swedencentral"  # Change to your preferred region (e.g., "eastus", "northeurope")
+LOCATION="francecentral"  # Change to your preferred region (e.g., "eastus", "northeurope")
 VM_NAME="recipe-cookbook-vm"
 VM_SIZE="Standard_B1s"  # Change to "Standard_B2s" for better performance
 ADMIN_USERNAME="azureuser"
