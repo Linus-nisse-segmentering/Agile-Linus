@@ -221,6 +221,8 @@ def fetch_recipe_data(id)
     [id],
   )
 
+  return nil if recipe.nil?
+
   ingredients = ingredients_for_recipe(db, id)
   tags = tags_for_recipe(db, id)
 
@@ -236,6 +238,16 @@ def fetch_recipe_data(id)
     'ingredients' => rows_to_hashes(ingredients),
     'tags' => rows_to_hashes(tags),
   }
+end
+
+# Recipe detail page (web)
+get '/recipes/:id/' do
+  puts 'Route invoked: GET /recipes/:id/'
+  recipe = fetch_recipe_data(params[:id])
+
+  halt 404, 'Not Found' if recipe.nil?
+
+  erb :recipe_detail, locals: { recipe: recipe }
 end
 
 def swagger_ui_html
@@ -605,6 +617,14 @@ end
 # ============================================
 # Application startup
 # ============================================
+
+# Log details for 404s to help debug missing routes
+not_found do
+  puts "NotFound handler triggered for path: #{request.path_info}"
+  puts "Request env keys: #{request.env.keys.select { |k| k =~ /REQUEST|PATH|HTTP/ }.join(', ')}"
+  content_type 'text/html'
+  '<h1>Not Found</h1>'
+end
 
 # Initialize database before starting server
 configure do
