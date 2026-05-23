@@ -13,7 +13,7 @@
       <img src="./assets/0.13.2/loading.gif" alt="loading"/>
     </div>
     <div id="wrapper" class="hide">
-      <div class="timestamp">Generated <abbr class="timeago" title="2026-05-20T11:47:40+02:00">2026-05-20T11:47:40+02:00</abbr></div>
+      <div class="timestamp">Generated <abbr class="timeago" title="2026-05-23T16:38:46+02:00">2026-05-23T16:38:46+02:00</abbr></div>
       <ul class="group_tabs"></ul>
 
       <div id="content">
@@ -22,14 +22,14 @@
     <span class="group_name">All Files</span>
     (<span class="covered_percent">
       <span class="red">
-  45.96%
+  41.96%
 </span>
 
      </span>
      covered at
      <span class="covered_strength">
        <span class="green">
-         1.16
+         1.01
        </span>
     </span> hits/line
     )
@@ -42,11 +42,11 @@
   </div>
 
   <div class="t-line-summary">
-    <b>198</b> relevant lines,
-    <span class="green"><b>91</b> lines covered</span> and
-    <span class="red"><b>107</b> lines missed. </span>
+    <b>224</b> relevant lines,
+    <span class="green"><b>94</b> lines covered</span> and
+    <span class="red"><b>130</b> lines missed. </span>
     (<span class="red">
-  45.96%
+  41.96%
 </span>
 )
   </div>
@@ -70,13 +70,13 @@
       <tbody>
         
           <tr class="t-file">
-            <td class="strong t-file__name"><a href="#ee1343da93d8e80e044882015b82476515c79f99" class="src_link" title="app.rb">app.rb</a></td>
-            <td class="red strong cell--number t-file__coverage">45.96 %</td>
-            <td class="cell--number">598</td>
-            <td class="cell--number">198</td>
-            <td class="cell--number">91</td>
-            <td class="cell--number">107</td>
-            <td class="cell--number">1.16</td>
+            <td class="strong t-file__name"><a href="#5d79fc0e6224d6ad202292525ae8258e47d7caf2" class="src_link" title="app.rb">app.rb</a></td>
+            <td class="red strong cell--number t-file__coverage">41.96 %</td>
+            <td class="cell--number">631</td>
+            <td class="cell--number">224</td>
+            <td class="cell--number">94</td>
+            <td class="cell--number">130</td>
+            <td class="cell--number">1.01</td>
             
           </tr>
         
@@ -97,12 +97,12 @@
 
       <div class="source_files">
       
-        <div class="source_table" id="ee1343da93d8e80e044882015b82476515c79f99">
+        <div class="source_table" id="5d79fc0e6224d6ad202292525ae8258e47d7caf2">
   <div class="header">
     <h3>app.rb</h3>
     <h4>
       <span class="red">
-  45.96%
+  41.96%
 </span>
 
       lines covered
@@ -111,9 +111,9 @@
     
 
     <div class="t-line-summary">
-      <b>198</b> relevant lines.
-      <span class="green"><b>91</b> lines covered</span> and
-      <span class="red"><b>107</b> lines missed.</span>
+      <b>224</b> relevant lines.
+      <span class="green"><b>94</b> lines covered</span> and
+      <span class="red"><b>130</b> lines missed.</span>
     </div>
 
     
@@ -187,7 +187,7 @@
 
             
 
-            <code class="ruby">require &#39;sqlite3&#39;</code>
+            <code class="ruby">require &#39;pg&#39;</code>
           </li>
         </div>
       
@@ -707,27 +707,31 @@
 
             
 
-            <code class="ruby">DATABASE = ENV.fetch(&#39;DATABASE_PATH&#39;, &#39;app.db&#39;)</code>
+            <code class="ruby">DB_HOST = ENV.fetch(&#39;DB_HOST&#39;, &#39;localhost&#39;)</code>
           </li>
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="55">
+          <li class="covered" data-hits="1" data-linenumber="55">
+            
+              <span class="hits">1</span>
             
 
             
 
-            <code class="ruby"></code>
+            <code class="ruby">DB_PORT = Integer(ENV.fetch(&#39;DB_PORT&#39;, &#39;5432&#39;))</code>
           </li>
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="56">
+          <li class="covered" data-hits="1" data-linenumber="56">
+            
+              <span class="hits">1</span>
             
 
             
 
-            <code class="ruby"># Helper method to get database connection</code>
+            <code class="ruby">DB_NAME = ENV.fetch(&#39;DB_NAME&#39;, &#39;recipe_cookbook&#39;)</code>
           </li>
         </div>
       
@@ -739,70 +743,36 @@
 
             
 
-            <code class="ruby">def db_connection</code>
+            <code class="ruby">DB_USER = ENV.fetch(&#39;DB_USER&#39;, &#39;recipe_user&#39;)</code>
           </li>
         </div>
       
         <div>
-          <li class="covered" data-hits="3" data-linenumber="58">
+          <li class="covered" data-hits="1" data-linenumber="58">
             
-              <span class="hits">3</span>
-            
-
+              <span class="hits">1</span>
             
 
-            <code class="ruby">  db = SQLite3::Database.new(DATABASE)</code>
+            
+
+            <code class="ruby">DB_PASSWORD = ENV.fetch(&#39;DB_PASSWORD&#39;, &#39;recipe_pass&#39;)</code>
           </li>
         </div>
       
         <div>
-          <li class="covered" data-hits="3" data-linenumber="59">
+          <li class="covered" data-hits="1" data-linenumber="59">
             
-              <span class="hits">3</span>
-            
-
+              <span class="hits">1</span>
             
 
-            <code class="ruby">  db.results_as_hash = true</code>
+            
+
+            <code class="ruby">DB_SSLMODE = ENV.fetch(&#39;DB_SSLMODE&#39;, &#39;prefer&#39;)</code>
           </li>
         </div>
       
         <div>
-          <li class="covered" data-hits="3" data-linenumber="60">
-            
-              <span class="hits">3</span>
-            
-
-            
-
-            <code class="ruby">  db.execute(&#39;PRAGMA foreign_keys = ON&#39;)</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="covered" data-hits="3" data-linenumber="61">
-            
-              <span class="hits">3</span>
-            
-
-            
-
-            <code class="ruby">  db</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="62">
-            
-
-            
-
-            <code class="ruby">end</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="63">
+          <li class="never" data-hits="" data-linenumber="60">
             
 
             
@@ -812,36 +782,68 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="64">
+          <li class="never" data-hits="" data-linenumber="61">
             
 
             
 
-            <code class="ruby"># Helper method to convert SQLite rows to proper hashes</code>
+            <code class="ruby"># Helper method to get database connection</code>
           </li>
         </div>
       
         <div>
-          <li class="covered" data-hits="1" data-linenumber="65">
+          <li class="covered" data-hits="1" data-linenumber="62">
             
               <span class="hits">1</span>
             
 
             
 
-            <code class="ruby">def row_to_hash(row)</code>
+            <code class="ruby">def db_connection</code>
           </li>
         </div>
       
         <div>
-          <li class="covered" data-hits="22" data-linenumber="66">
+          <li class="covered" data-hits="2" data-linenumber="63">
             
-              <span class="hits">22</span>
+              <span class="hits">2</span>
+            
+
+            
+
+            <code class="ruby">  if ENV[&#39;DATABASE_URL&#39;] &amp;&amp; !ENV[&#39;DATABASE_URL&#39;].empty?</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="missed" data-hits="0" data-linenumber="64">
             
 
             
 
-            <code class="ruby">  return nil if row.nil?</code>
+            <code class="ruby">    PG.connect(ENV[&#39;DATABASE_URL&#39;])</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="65">
+            
+
+            
+
+            <code class="ruby">  else</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="covered" data-hits="2" data-linenumber="66">
+            
+              <span class="hits">2</span>
+            
+
+            
+
+            <code class="ruby">    PG.connect(</code>
           </li>
         </div>
       
@@ -851,19 +853,17 @@
 
             
 
-            <code class="ruby"></code>
+            <code class="ruby">      host: DB_HOST,</code>
           </li>
         </div>
       
         <div>
-          <li class="covered" data-hits="66" data-linenumber="68">
-            
-              <span class="hits">66</span>
+          <li class="never" data-hits="" data-linenumber="68">
             
 
             
 
-            <code class="ruby">  row.reject { |k, _v| k.is_a?(Integer) }</code>
+            <code class="ruby">      port: DB_PORT,</code>
           </li>
         </div>
       
@@ -873,7 +873,7 @@
 
             
 
-            <code class="ruby">end</code>
+            <code class="ruby">      dbname: DB_NAME,</code>
           </li>
         </div>
       
@@ -883,31 +883,27 @@
 
             
 
-            <code class="ruby"></code>
+            <code class="ruby">      user: DB_USER,</code>
           </li>
         </div>
       
         <div>
-          <li class="covered" data-hits="1" data-linenumber="71">
-            
-              <span class="hits">1</span>
+          <li class="never" data-hits="" data-linenumber="71">
             
 
             
 
-            <code class="ruby">def rows_to_hashes(rows)</code>
+            <code class="ruby">      password: DB_PASSWORD,</code>
           </li>
         </div>
       
         <div>
-          <li class="covered" data-hits="23" data-linenumber="72">
-            
-              <span class="hits">23</span>
+          <li class="never" data-hits="" data-linenumber="72">
             
 
             
 
-            <code class="ruby">  rows.map { |row| row_to_hash(row) }</code>
+            <code class="ruby">      sslmode: DB_SSLMODE,</code>
           </li>
         </div>
       
@@ -917,7 +913,7 @@
 
             
 
-            <code class="ruby">end</code>
+            <code class="ruby">    )</code>
           </li>
         </div>
       
@@ -927,31 +923,27 @@
 
             
 
+            <code class="ruby">  end</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="75">
+            
+
+            
+
+            <code class="ruby">end</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="76">
+            
+
+            
+
             <code class="ruby"></code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="covered" data-hits="1" data-linenumber="75">
-            
-              <span class="hits">1</span>
-            
-
-            
-
-            <code class="ruby">get &#39;/metrics&#39; do</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="covered" data-hits="1" data-linenumber="76">
-            
-              <span class="hits">1</span>
-            
-
-            
-
-            <code class="ruby">  content_type &#39;text/plain; version=0.0.4; charset=utf-8&#39;</code>
           </li>
         </div>
       
@@ -963,17 +955,19 @@
 
             
 
-            <code class="ruby">  Prometheus::Client::Formats::Text.marshal(REGISTRY)</code>
+            <code class="ruby">def db_exec(db, sql, params = [])</code>
           </li>
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="78">
+          <li class="covered" data-hits="2" data-linenumber="78">
+            
+              <span class="hits">2</span>
             
 
             
 
-            <code class="ruby">end</code>
+            <code class="ruby">  db.exec_params(sql, params)</code>
           </li>
         </div>
       
@@ -983,7 +977,7 @@
 
             
 
-            <code class="ruby"></code>
+            <code class="ruby">end</code>
           </li>
         </div>
       
@@ -993,7 +987,7 @@
 
             
 
-            <code class="ruby"># Initialize database (called on startup)</code>
+            <code class="ruby"></code>
           </li>
         </div>
       
@@ -1005,29 +999,27 @@
 
             
 
-            <code class="ruby">def init_db</code>
+            <code class="ruby">def db_first_row(db, sql, params = [])</code>
           </li>
         </div>
       
         <div>
-          <li class="covered" data-hits="1" data-linenumber="82">
-            
-              <span class="hits">1</span>
+          <li class="missed" data-hits="0" data-linenumber="82">
             
 
             
 
-            <code class="ruby">  db = db_connection</code>
+            <code class="ruby">  result = db.exec_params(sql, params)</code>
           </li>
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="83">
+          <li class="missed" data-hits="0" data-linenumber="83">
             
 
             
 
-            <code class="ruby"></code>
+            <code class="ruby">  result.ntuples.positive? ? result[0] : nil</code>
           </li>
         </div>
       
@@ -1037,24 +1029,12 @@
 
             
 
-            <code class="ruby">  # Create tables</code>
+            <code class="ruby">end</code>
           </li>
         </div>
       
         <div>
-          <li class="covered" data-hits="1" data-linenumber="85">
-            
-              <span class="hits">1</span>
-            
-
-            
-
-            <code class="ruby">  db.execute_batch(File.read(&#39;db/schema.sql&#39;))</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="86">
+          <li class="never" data-hits="" data-linenumber="85">
             
 
             
@@ -1064,24 +1044,34 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="87">
-            
-
-            
-
-            <code class="ruby">  # Check if we need to seed</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="covered" data-hits="1" data-linenumber="88">
+          <li class="covered" data-hits="1" data-linenumber="86">
             
               <span class="hits">1</span>
             
 
             
 
-            <code class="ruby">  recipe_count = db.get_first_value(&#39;SELECT COUNT(*) FROM recipes&#39;)</code>
+            <code class="ruby">def db_first_value(db, sql, params = [])</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="missed" data-hits="0" data-linenumber="87">
+            
+
+            
+
+            <code class="ruby">  row = db_first_row(db, sql, params)</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="missed" data-hits="0" data-linenumber="88">
+            
+
+            
+
+            <code class="ruby">  row&amp;.values&amp;.first</code>
           </li>
         </div>
       
@@ -1091,31 +1081,27 @@
 
             
 
+            <code class="ruby">end</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="90">
+            
+
+            
+
             <code class="ruby"></code>
           </li>
         </div>
       
         <div>
-          <li class="covered" data-hits="1" data-linenumber="90">
-            
-              <span class="hits">1</span>
+          <li class="never" data-hits="" data-linenumber="91">
             
 
             
 
-            <code class="ruby">  if recipe_count.to_i.zero?</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="covered" data-hits="1" data-linenumber="91">
-            
-              <span class="hits">1</span>
-            
-
-            
-
-            <code class="ruby">    puts &#39;Seeding database...&#39;</code>
+            <code class="ruby"># Helper method to convert rows to proper hashes</code>
           </li>
         </div>
       
@@ -1127,17 +1113,19 @@
 
             
 
-            <code class="ruby">    db.execute_batch(File.read(&#39;db/seeds.sql&#39;))</code>
+            <code class="ruby">def row_to_hash(row)</code>
           </li>
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="93">
+          <li class="covered" data-hits="22" data-linenumber="93">
+            
+              <span class="hits">22</span>
             
 
             
 
-            <code class="ruby">  end</code>
+            <code class="ruby">  return nil if row.nil?</code>
           </li>
         </div>
       
@@ -1152,14 +1140,14 @@
         </div>
       
         <div>
-          <li class="covered" data-hits="1" data-linenumber="95">
+          <li class="covered" data-hits="66" data-linenumber="95">
             
-              <span class="hits">1</span>
-            
-
+              <span class="hits">66</span>
             
 
-            <code class="ruby">  db.close</code>
+            
+
+            <code class="ruby">  row.reject { |k, _v| k.is_a?(Integer) }</code>
           </li>
         </div>
       
@@ -1169,32 +1157,12 @@
 
             
 
-            <code class="ruby">rescue StandardError =&gt; e</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="missed" data-hits="0" data-linenumber="97">
-            
-
-            
-
-            <code class="ruby">  puts &quot;Database initialization error: #{e.message}&quot;</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="98">
-            
-
-            
-
             <code class="ruby">end</code>
           </li>
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="99">
+          <li class="never" data-hits="" data-linenumber="97">
             
 
             
@@ -1204,12 +1172,36 @@
         </div>
       
         <div>
+          <li class="covered" data-hits="1" data-linenumber="98">
+            
+              <span class="hits">1</span>
+            
+
+            
+
+            <code class="ruby">def rows_to_hashes(rows)</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="covered" data-hits="23" data-linenumber="99">
+            
+              <span class="hits">23</span>
+            
+
+            
+
+            <code class="ruby">  rows.map { |row| row_to_hash(row) }</code>
+          </li>
+        </div>
+      
+        <div>
           <li class="never" data-hits="" data-linenumber="100">
             
 
             
 
-            <code class="ruby"># yo</code>
+            <code class="ruby">end</code>
           </li>
         </div>
       
@@ -1224,32 +1216,38 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="102">
+          <li class="covered" data-hits="1" data-linenumber="102">
+            
+              <span class="hits">1</span>
             
 
             
 
-            <code class="ruby"># ============================================</code>
+            <code class="ruby">get &#39;/metrics&#39; do</code>
           </li>
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="103">
+          <li class="covered" data-hits="1" data-linenumber="103">
+            
+              <span class="hits">1</span>
             
 
             
 
-            <code class="ruby"># WEB ROUTES (HTML pages)</code>
+            <code class="ruby">  content_type &#39;text/plain; version=0.0.4; charset=utf-8&#39;</code>
           </li>
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="104">
+          <li class="covered" data-hits="1" data-linenumber="104">
+            
+              <span class="hits">1</span>
             
 
             
 
-            <code class="ruby"># ============================================</code>
+            <code class="ruby">  Prometheus::Client::Formats::Text.marshal(REGISTRY)</code>
           </li>
         </div>
       
@@ -1259,7 +1257,7 @@
 
             
 
-            <code class="ruby"></code>
+            <code class="ruby">end</code>
           </li>
         </div>
       
@@ -1269,39 +1267,41 @@
 
             
 
-            <code class="ruby"># Home page - display all recipes</code>
+            <code class="ruby"></code>
           </li>
         </div>
       
         <div>
-          <li class="covered" data-hits="1" data-linenumber="107">
+          <li class="never" data-hits="" data-linenumber="107">
+            
+
+            
+
+            <code class="ruby"># Initialize database (called on startup)</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="covered" data-hits="1" data-linenumber="108">
             
               <span class="hits">1</span>
             
 
             
 
-            <code class="ruby">get &#39;/&#39; do</code>
+            <code class="ruby">def init_db</code>
           </li>
         </div>
       
         <div>
-          <li class="missed" data-hits="0" data-linenumber="108">
+          <li class="covered" data-hits="1" data-linenumber="109">
+            
+              <span class="hits">1</span>
             
 
             
 
-            <code class="ruby">  puts &#39;Route invoked: GET /&#39;</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="missed" data-hits="0" data-linenumber="109">
-            
-
-            
-
-            <code class="ruby">  db = db_connection</code>
+            <code class="ruby">  return unless ENV.fetch(&#39;DB_INIT&#39;, &#39;false&#39;).downcase == &#39;true&#39;</code>
           </li>
         </div>
       
@@ -1321,37 +1321,37 @@
 
             
 
-            <code class="ruby">  recipes = db.execute(&#39;SELECT id, title, time_minutes, price, link FROM recipes&#39;)</code>
+            <code class="ruby">  db = db_connection</code>
           </li>
         </div>
       
         <div>
-          <li class="missed" data-hits="0" data-linenumber="112">
+          <li class="never" data-hits="" data-linenumber="112">
             
 
             
 
-            <code class="ruby">  recipes_with_tags = recipes.map do |recipe|</code>
+            <code class="ruby"></code>
           </li>
         </div>
       
         <div>
-          <li class="missed" data-hits="0" data-linenumber="113">
+          <li class="never" data-hits="" data-linenumber="113">
             
 
             
 
-            <code class="ruby">    tags = db.execute(</code>
+            <code class="ruby">  # Create tables</code>
           </li>
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="114">
+          <li class="missed" data-hits="0" data-linenumber="114">
             
 
             
 
-            <code class="ruby">      &#39;SELECT t.id, t.name FROM tags t</code>
+            <code class="ruby">  db.exec(File.read(&#39;db/schema.pg.sql&#39;))</code>
           </li>
         </div>
       
@@ -1361,7 +1361,7 @@
 
             
 
-            <code class="ruby">       JOIN recipe_tags rt ON t.id = rt.tag_id</code>
+            <code class="ruby"></code>
           </li>
         </div>
       
@@ -1371,17 +1371,17 @@
 
             
 
-            <code class="ruby">       WHERE rt.recipe_id = ?&#39;,</code>
+            <code class="ruby">  # Check if we need to seed</code>
           </li>
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="117">
+          <li class="missed" data-hits="0" data-linenumber="117">
             
 
             
 
-            <code class="ruby">      recipe[&#39;id&#39;],</code>
+            <code class="ruby">  recipe_count = db_first_value(db, &#39;SELECT COUNT(*) FROM recipes&#39;)</code>
           </li>
         </div>
       
@@ -1391,27 +1391,27 @@
 
             
 
-            <code class="ruby">    )</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="119">
-            
-
-            
-
             <code class="ruby"></code>
           </li>
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="120">
+          <li class="missed" data-hits="0" data-linenumber="119">
             
 
             
 
-            <code class="ruby">    {</code>
+            <code class="ruby">  if recipe_count.to_i.zero?</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="missed" data-hits="0" data-linenumber="120">
+            
+
+            
+
+            <code class="ruby">    puts &#39;Seeding database...&#39;</code>
           </li>
         </div>
       
@@ -1421,7 +1421,7 @@
 
             
 
-            <code class="ruby">      &#39;id&#39; =&gt; recipe[&#39;id&#39;],</code>
+            <code class="ruby">    db.exec(File.read(&#39;db/seeds.sql&#39;))</code>
           </li>
         </div>
       
@@ -1431,7 +1431,7 @@
 
             
 
-            <code class="ruby">      &#39;title&#39; =&gt; recipe[&#39;title&#39;],</code>
+            <code class="ruby">  end</code>
           </li>
         </div>
       
@@ -1441,72 +1441,12 @@
 
             
 
-            <code class="ruby">      &#39;time_minutes&#39; =&gt; recipe[&#39;time_minutes&#39;],</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="124">
-            
-
-            
-
-            <code class="ruby">      &#39;price&#39; =&gt; recipe[&#39;price&#39;],</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="125">
-            
-
-            
-
-            <code class="ruby">      &#39;link&#39; =&gt; recipe[&#39;link&#39;] || &#39;&#39;,</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="126">
-            
-
-            
-
-            <code class="ruby">      &#39;tags&#39; =&gt; rows_to_hashes(tags),</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="127">
-            
-
-            
-
-            <code class="ruby">    }</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="128">
-            
-
-            
-
-            <code class="ruby">  end</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="129">
-            
-
-            
-
             <code class="ruby"></code>
           </li>
         </div>
       
         <div>
-          <li class="missed" data-hits="0" data-linenumber="130">
+          <li class="missed" data-hits="0" data-linenumber="124">
             
 
             
@@ -1516,12 +1456,72 @@
         </div>
       
         <div>
-          <li class="missed" data-hits="0" data-linenumber="131">
+          <li class="never" data-hits="" data-linenumber="125">
             
 
             
 
-            <code class="ruby">  erb :home, locals: { recipes: recipes_with_tags }</code>
+            <code class="ruby">rescue StandardError =&gt; e</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="missed" data-hits="0" data-linenumber="126">
+            
+
+            
+
+            <code class="ruby">  puts &quot;Database initialization error: #{e.message}&quot;</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="127">
+            
+
+            
+
+            <code class="ruby">end</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="128">
+            
+
+            
+
+            <code class="ruby"></code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="129">
+            
+
+            
+
+            <code class="ruby"># yo</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="130">
+            
+
+            
+
+            <code class="ruby"></code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="131">
+            
+
+            
+
+            <code class="ruby"># ============================================</code>
           </li>
         </div>
       
@@ -1531,7 +1531,7 @@
 
             
 
-            <code class="ruby">end</code>
+            <code class="ruby"># WEB ROUTES (HTML pages)</code>
           </li>
         </div>
       
@@ -1541,7 +1541,7 @@
 
             
 
-            <code class="ruby"></code>
+            <code class="ruby"># ============================================</code>
           </li>
         </div>
       
@@ -1551,7 +1551,7 @@
 
             
 
-            <code class="ruby"># ============================================</code>
+            <code class="ruby"></code>
           </li>
         </div>
       
@@ -1561,69 +1561,69 @@
 
             
 
-            <code class="ruby"># API DOCUMENTATION</code>
+            <code class="ruby"># Enhanced error logging for debugging</code>
           </li>
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="136">
-            
-
-            
-
-            <code class="ruby"># ============================================</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="137">
-            
-
-            
-
-            <code class="ruby"></code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="138">
-            
-
-            
-
-            <code class="ruby"># Serve OpenAPI schema</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="covered" data-hits="1" data-linenumber="139">
+          <li class="covered" data-hits="1" data-linenumber="136">
             
               <span class="hits">1</span>
             
 
             
 
-            <code class="ruby">get &#39;/api/schema&#39; do</code>
+            <code class="ruby">error do</code>
           </li>
         </div>
       
         <div>
-          <li class="missed" data-hits="0" data-linenumber="140">
+          <li class="missed" data-hits="0" data-linenumber="137">
             
 
             
 
-            <code class="ruby">  content_type &#39;application/yaml&#39;</code>
+            <code class="ruby">  e = env[&#39;sinatra.error&#39;]</code>
           </li>
         </div>
       
         <div>
-          <li class="missed" data-hits="0" data-linenumber="141">
+          <li class="missed" data-hits="0" data-linenumber="138">
             
 
             
 
-            <code class="ruby">  File.read(&#39;yml/api-schema.yaml&#39;)</code>
+            <code class="ruby">  puts &quot;Sinatra error: \\#{e.class} - \\#{e.message}\\n\\#{e.backtrace.join(&#39;\\n&#39;)}&quot; if e</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="missed" data-hits="0" data-linenumber="139">
+            
+
+            
+
+            <code class="ruby">  &#39;Internal Server Error&#39;</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="140">
+            
+
+            
+
+            <code class="ruby">end</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="141">
+            
+
+            
+
+            <code class="ruby"></code>
           </li>
         </div>
       
@@ -1633,39 +1633,39 @@
 
             
 
-            <code class="ruby">end</code>
+            <code class="ruby"># Home page - display all recipes</code>
           </li>
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="143">
-            
-
-            
-
-            <code class="ruby"></code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="144">
-            
-
-            
-
-            <code class="ruby"># Swagger UI endpoint</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="covered" data-hits="1" data-linenumber="145">
+          <li class="covered" data-hits="1" data-linenumber="143">
             
               <span class="hits">1</span>
             
 
             
 
-            <code class="ruby">get &#39;/apidocs&#39; do</code>
+            <code class="ruby">get &#39;/&#39; do</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="missed" data-hits="0" data-linenumber="144">
+            
+
+            
+
+            <code class="ruby">  puts &#39;Route start: GET /&#39;</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="145">
+            
+
+            
+
+            <code class="ruby">  begin</code>
           </li>
         </div>
       
@@ -1675,17 +1675,17 @@
 
             
 
-            <code class="ruby">  swagger_ui_html</code>
+            <code class="ruby">    db = db_connection</code>
           </li>
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="147">
+          <li class="missed" data-hits="0" data-linenumber="147">
             
 
             
 
-            <code class="ruby">end</code>
+            <code class="ruby">    puts &#39;DB connected&#39;</code>
           </li>
         </div>
       
@@ -1700,14 +1700,12 @@
         </div>
       
         <div>
-          <li class="covered" data-hits="1" data-linenumber="149">
-            
-              <span class="hits">1</span>
+          <li class="missed" data-hits="0" data-linenumber="149">
             
 
             
 
-            <code class="ruby">def ingredients_for_recipe(db, id)</code>
+            <code class="ruby">    recipes = db_exec(db, &#39;SELECT id, title, time_minutes, price, link FROM recipes&#39;)</code>
           </li>
         </div>
       
@@ -1717,27 +1715,27 @@
 
             
 
-            <code class="ruby">  db.execute(</code>
+            <code class="ruby">    puts &quot;Fetched recipes: \\#{recipes.ntuples} rows&quot;</code>
           </li>
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="151">
+          <li class="missed" data-hits="0" data-linenumber="151">
             
 
             
 
-            <code class="ruby">    &#39;SELECT i.id, i.name, ri.amount, ri.unit FROM ingredients i</code>
+            <code class="ruby">    recipes_with_tags = recipes.map do |recipe|</code>
           </li>
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="152">
+          <li class="missed" data-hits="0" data-linenumber="152">
             
 
             
 
-            <code class="ruby">     JOIN recipe_ingredients ri ON i.id = ri.ingredient_id</code>
+            <code class="ruby">      tags = db_exec(</code>
           </li>
         </div>
       
@@ -1747,7 +1745,7 @@
 
             
 
-            <code class="ruby">     WHERE ri.recipe_id = ?&#39;,</code>
+            <code class="ruby">        db,</code>
           </li>
         </div>
       
@@ -1757,7 +1755,7 @@
 
             
 
-            <code class="ruby">    id,</code>
+            <code class="ruby">        &#39;SELECT t.id, t.name FROM tags t</code>
           </li>
         </div>
       
@@ -1767,7 +1765,7 @@
 
             
 
-            <code class="ruby">  )</code>
+            <code class="ruby">         JOIN recipe_tags rt ON t.id = rt.tag_id</code>
           </li>
         </div>
       
@@ -1777,7 +1775,7 @@
 
             
 
-            <code class="ruby">end</code>
+            <code class="ruby">         WHERE rt.recipe_id = $1&#39;,</code>
           </li>
         </div>
       
@@ -1787,29 +1785,27 @@
 
             
 
+            <code class="ruby">        [recipe[&#39;id&#39;]],</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="158">
+            
+
+            
+
+            <code class="ruby">      )</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="159">
+            
+
+            
+
             <code class="ruby"></code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="covered" data-hits="1" data-linenumber="158">
-            
-              <span class="hits">1</span>
-            
-
-            
-
-            <code class="ruby">def tags_for_recipe(db, id)</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="missed" data-hits="0" data-linenumber="159">
-            
-
-            
-
-            <code class="ruby">  db.execute(</code>
           </li>
         </div>
       
@@ -1819,17 +1815,17 @@
 
             
 
-            <code class="ruby">    &#39;SELECT t.id, t.name FROM tags t</code>
+            <code class="ruby">      {</code>
           </li>
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="161">
+          <li class="missed" data-hits="0" data-linenumber="161">
             
 
             
 
-            <code class="ruby">     JOIN recipe_tags rt ON t.id = rt.tag_id</code>
+            <code class="ruby">        &#39;id&#39; =&gt; recipe[&#39;id&#39;],</code>
           </li>
         </div>
       
@@ -1839,7 +1835,7 @@
 
             
 
-            <code class="ruby">     WHERE rt.recipe_id = ?&#39;,</code>
+            <code class="ruby">        &#39;title&#39; =&gt; recipe[&#39;title&#39;],</code>
           </li>
         </div>
       
@@ -1849,7 +1845,7 @@
 
             
 
-            <code class="ruby">    id,</code>
+            <code class="ruby">        &#39;time_minutes&#39; =&gt; recipe[&#39;time_minutes&#39;],</code>
           </li>
         </div>
       
@@ -1859,7 +1855,7 @@
 
             
 
-            <code class="ruby">  )</code>
+            <code class="ruby">        &#39;price&#39; =&gt; recipe[&#39;price&#39;],</code>
           </li>
         </div>
       
@@ -1869,7 +1865,7 @@
 
             
 
-            <code class="ruby">end</code>
+            <code class="ruby">        &#39;link&#39; =&gt; recipe[&#39;link&#39;] || &#39;&#39;,</code>
           </li>
         </div>
       
@@ -1879,29 +1875,27 @@
 
             
 
-            <code class="ruby"></code>
+            <code class="ruby">        &#39;tags&#39; =&gt; rows_to_hashes(tags),</code>
           </li>
         </div>
       
         <div>
-          <li class="covered" data-hits="1" data-linenumber="167">
-            
-              <span class="hits">1</span>
+          <li class="never" data-hits="" data-linenumber="167">
             
 
             
 
-            <code class="ruby">def fetch_recipe_data(id)</code>
+            <code class="ruby">      }</code>
           </li>
         </div>
       
         <div>
-          <li class="missed" data-hits="0" data-linenumber="168">
+          <li class="never" data-hits="" data-linenumber="168">
             
 
             
 
-            <code class="ruby">  db = db_connection</code>
+            <code class="ruby">    end</code>
           </li>
         </div>
       
@@ -1921,27 +1915,27 @@
 
             
 
-            <code class="ruby">  recipe = db.get_first_row(</code>
+            <code class="ruby">    db.close</code>
           </li>
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="171">
+          <li class="missed" data-hits="0" data-linenumber="171">
             
 
             
 
-            <code class="ruby">    &#39;SELECT id, title, time_minutes, price, link, description FROM recipes WHERE id = ?&#39;,</code>
+            <code class="ruby">    puts &#39;DB closed&#39;</code>
           </li>
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="172">
+          <li class="missed" data-hits="0" data-linenumber="172">
             
 
             
 
-            <code class="ruby">    id,</code>
+            <code class="ruby">    erb :home, locals: { recipes: recipes_with_tags }</code>
           </li>
         </div>
       
@@ -1951,17 +1945,17 @@
 
             
 
-            <code class="ruby">  )</code>
+            <code class="ruby">  rescue StandardError =&gt; e</code>
           </li>
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="174">
+          <li class="missed" data-hits="0" data-linenumber="174">
             
 
             
 
-            <code class="ruby"></code>
+            <code class="ruby">    puts &quot;Exception in GET /: \\#{e.class} - \\#{e.message}\\n\\#{e.backtrace.join(&#39;\\n&#39;)}&quot;</code>
           </li>
         </div>
       
@@ -1971,17 +1965,17 @@
 
             
 
-            <code class="ruby">  ingredients = ingredients_for_recipe(db, id)</code>
+            <code class="ruby">    halt 500, &#39;Internal Server Error&#39;</code>
           </li>
         </div>
       
         <div>
-          <li class="missed" data-hits="0" data-linenumber="176">
+          <li class="never" data-hits="" data-linenumber="176">
             
 
             
 
-            <code class="ruby">  tags = tags_for_recipe(db, id)</code>
+            <code class="ruby">  end</code>
           </li>
         </div>
       
@@ -1991,17 +1985,17 @@
 
             
 
-            <code class="ruby"></code>
+            <code class="ruby">end</code>
           </li>
         </div>
       
         <div>
-          <li class="missed" data-hits="0" data-linenumber="178">
+          <li class="never" data-hits="" data-linenumber="178">
             
 
             
 
-            <code class="ruby">  db.close</code>
+            <code class="ruby"></code>
           </li>
         </div>
       
@@ -2011,7 +2005,7 @@
 
             
 
-            <code class="ruby"></code>
+            <code class="ruby"># ============================================</code>
           </li>
         </div>
       
@@ -2021,17 +2015,17 @@
 
             
 
-            <code class="ruby">  {</code>
+            <code class="ruby"># API DOCUMENTATION</code>
           </li>
         </div>
       
         <div>
-          <li class="missed" data-hits="0" data-linenumber="181">
+          <li class="never" data-hits="" data-linenumber="181">
             
 
             
 
-            <code class="ruby">    &#39;id&#39; =&gt; recipe[&#39;id&#39;],</code>
+            <code class="ruby"># ============================================</code>
           </li>
         </div>
       
@@ -2041,7 +2035,7 @@
 
             
 
-            <code class="ruby">    &#39;title&#39; =&gt; recipe[&#39;title&#39;],</code>
+            <code class="ruby"></code>
           </li>
         </div>
       
@@ -2051,37 +2045,39 @@
 
             
 
-            <code class="ruby">    &#39;time_minutes&#39; =&gt; recipe[&#39;time_minutes&#39;],</code>
+            <code class="ruby"># Serve OpenAPI schema</code>
           </li>
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="184">
+          <li class="covered" data-hits="1" data-linenumber="184">
+            
+              <span class="hits">1</span>
             
 
             
 
-            <code class="ruby">    &#39;price&#39; =&gt; recipe[&#39;price&#39;],</code>
+            <code class="ruby">get &#39;/api/schema&#39; do</code>
           </li>
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="185">
+          <li class="missed" data-hits="0" data-linenumber="185">
             
 
             
 
-            <code class="ruby">    &#39;link&#39; =&gt; recipe[&#39;link&#39;] || &#39;&#39;,</code>
+            <code class="ruby">  content_type &#39;application/yaml&#39;</code>
           </li>
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="186">
+          <li class="missed" data-hits="0" data-linenumber="186">
             
 
             
 
-            <code class="ruby">    &#39;description&#39; =&gt; recipe[&#39;description&#39;] || &#39;&#39;,</code>
+            <code class="ruby">  File.read(&#39;yml/api-schema.yaml&#39;)</code>
           </li>
         </div>
       
@@ -2091,7 +2087,7 @@
 
             
 
-            <code class="ruby">    &#39;ingredients&#39; =&gt; rows_to_hashes(ingredients),</code>
+            <code class="ruby">end</code>
           </li>
         </div>
       
@@ -2101,7 +2097,7 @@
 
             
 
-            <code class="ruby">    &#39;tags&#39; =&gt; rows_to_hashes(tags),</code>
+            <code class="ruby"></code>
           </li>
         </div>
       
@@ -2111,12 +2107,34 @@
 
             
 
-            <code class="ruby">  }</code>
+            <code class="ruby"># Swagger UI endpoint</code>
           </li>
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="190">
+          <li class="covered" data-hits="1" data-linenumber="190">
+            
+              <span class="hits">1</span>
+            
+
+            
+
+            <code class="ruby">get &#39;/apidocs&#39; do</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="missed" data-hits="0" data-linenumber="191">
+            
+
+            
+
+            <code class="ruby">  swagger_ui_html</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="192">
             
 
             
@@ -2126,7 +2144,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="191">
+          <li class="never" data-hits="" data-linenumber="193">
             
 
             
@@ -2136,7 +2154,595 @@
         </div>
       
         <div>
-          <li class="covered" data-hits="1" data-linenumber="192">
+          <li class="covered" data-hits="1" data-linenumber="194">
+            
+              <span class="hits">1</span>
+            
+
+            
+
+            <code class="ruby">def ingredients_for_recipe(db, id)</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="missed" data-hits="0" data-linenumber="195">
+            
+
+            
+
+            <code class="ruby">  db_exec(</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="196">
+            
+
+            
+
+            <code class="ruby">    db,</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="197">
+            
+
+            
+
+            <code class="ruby">    &#39;SELECT i.id, i.name, ri.amount, ri.unit FROM ingredients i</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="198">
+            
+
+            
+
+            <code class="ruby">     JOIN recipe_ingredients ri ON i.id = ri.ingredient_id</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="199">
+            
+
+            
+
+            <code class="ruby">     WHERE ri.recipe_id = $1&#39;,</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="200">
+            
+
+            
+
+            <code class="ruby">    [id],</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="201">
+            
+
+            
+
+            <code class="ruby">  )</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="202">
+            
+
+            
+
+            <code class="ruby">end</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="203">
+            
+
+            
+
+            <code class="ruby"></code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="covered" data-hits="1" data-linenumber="204">
+            
+              <span class="hits">1</span>
+            
+
+            
+
+            <code class="ruby">def tags_for_recipe(db, id)</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="missed" data-hits="0" data-linenumber="205">
+            
+
+            
+
+            <code class="ruby">  db_exec(</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="206">
+            
+
+            
+
+            <code class="ruby">    db,</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="207">
+            
+
+            
+
+            <code class="ruby">    &#39;SELECT t.id, t.name FROM tags t</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="208">
+            
+
+            
+
+            <code class="ruby">     JOIN recipe_tags rt ON t.id = rt.tag_id</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="209">
+            
+
+            
+
+            <code class="ruby">     WHERE rt.recipe_id = $1&#39;,</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="210">
+            
+
+            
+
+            <code class="ruby">    [id],</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="211">
+            
+
+            
+
+            <code class="ruby">  )</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="212">
+            
+
+            
+
+            <code class="ruby">end</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="213">
+            
+
+            
+
+            <code class="ruby"></code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="covered" data-hits="1" data-linenumber="214">
+            
+              <span class="hits">1</span>
+            
+
+            
+
+            <code class="ruby">def fetch_recipe_data(id)</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="missed" data-hits="0" data-linenumber="215">
+            
+
+            
+
+            <code class="ruby">  db = db_connection</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="216">
+            
+
+            
+
+            <code class="ruby"></code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="missed" data-hits="0" data-linenumber="217">
+            
+
+            
+
+            <code class="ruby">  recipe = db_first_row(</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="218">
+            
+
+            
+
+            <code class="ruby">    db,</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="219">
+            
+
+            
+
+            <code class="ruby">    &#39;SELECT id, title, time_minutes, price, link, description FROM recipes WHERE id = $1&#39;,</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="220">
+            
+
+            
+
+            <code class="ruby">    [id],</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="221">
+            
+
+            
+
+            <code class="ruby">  )</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="222">
+            
+
+            
+
+            <code class="ruby"></code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="missed" data-hits="0" data-linenumber="223">
+            
+
+            
+
+            <code class="ruby">  return nil if recipe.nil?</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="224">
+            
+
+            
+
+            <code class="ruby"></code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="missed" data-hits="0" data-linenumber="225">
+            
+
+            
+
+            <code class="ruby">  ingredients = ingredients_for_recipe(db, id)</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="missed" data-hits="0" data-linenumber="226">
+            
+
+            
+
+            <code class="ruby">  tags = tags_for_recipe(db, id)</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="227">
+            
+
+            
+
+            <code class="ruby"></code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="missed" data-hits="0" data-linenumber="228">
+            
+
+            
+
+            <code class="ruby">  db.close</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="229">
+            
+
+            
+
+            <code class="ruby"></code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="230">
+            
+
+            
+
+            <code class="ruby">  {</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="missed" data-hits="0" data-linenumber="231">
+            
+
+            
+
+            <code class="ruby">    &#39;id&#39; =&gt; recipe[&#39;id&#39;],</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="232">
+            
+
+            
+
+            <code class="ruby">    &#39;title&#39; =&gt; recipe[&#39;title&#39;],</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="233">
+            
+
+            
+
+            <code class="ruby">    &#39;time_minutes&#39; =&gt; recipe[&#39;time_minutes&#39;],</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="234">
+            
+
+            
+
+            <code class="ruby">    &#39;price&#39; =&gt; recipe[&#39;price&#39;],</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="235">
+            
+
+            
+
+            <code class="ruby">    &#39;link&#39; =&gt; recipe[&#39;link&#39;] || &#39;&#39;,</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="236">
+            
+
+            
+
+            <code class="ruby">    &#39;description&#39; =&gt; recipe[&#39;description&#39;] || &#39;&#39;,</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="237">
+            
+
+            
+
+            <code class="ruby">    &#39;ingredients&#39; =&gt; rows_to_hashes(ingredients),</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="238">
+            
+
+            
+
+            <code class="ruby">    &#39;tags&#39; =&gt; rows_to_hashes(tags),</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="239">
+            
+
+            
+
+            <code class="ruby">  }</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="240">
+            
+
+            
+
+            <code class="ruby">end</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="241">
+            
+
+            
+
+            <code class="ruby"></code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="242">
+            
+
+            
+
+            <code class="ruby"># Recipe detail page (web)</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="covered" data-hits="1" data-linenumber="243">
+            
+              <span class="hits">1</span>
+            
+
+            
+
+            <code class="ruby">get &#39;/recipes/:id/&#39; do</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="missed" data-hits="0" data-linenumber="244">
+            
+
+            
+
+            <code class="ruby">  puts &#39;Route invoked: GET /recipes/:id/&#39;</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="missed" data-hits="0" data-linenumber="245">
+            
+
+            
+
+            <code class="ruby">  recipe = fetch_recipe_data(params[:id])</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="246">
+            
+
+            
+
+            <code class="ruby"></code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="missed" data-hits="0" data-linenumber="247">
+            
+
+            
+
+            <code class="ruby">  halt 404, &#39;Not Found&#39; if recipe.nil?</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="248">
+            
+
+            
+
+            <code class="ruby"></code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="missed" data-hits="0" data-linenumber="249">
+            
+
+            
+
+            <code class="ruby">  erb :recipe_detail, locals: { recipe: recipe }</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="250">
+            
+
+            
+
+            <code class="ruby">end</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="251">
+            
+
+            
+
+            <code class="ruby"></code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="covered" data-hits="1" data-linenumber="252">
             
               <span class="hits">1</span>
             
@@ -2148,7 +2754,7 @@
         </div>
       
         <div>
-          <li class="missed" data-hits="0" data-linenumber="193">
+          <li class="missed" data-hits="0" data-linenumber="253">
             
 
             
@@ -2158,7 +2764,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="194">
+          <li class="never" data-hits="" data-linenumber="254">
             
 
             
@@ -2168,7 +2774,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="195">
+          <li class="never" data-hits="" data-linenumber="255">
             
 
             
@@ -2178,7 +2784,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="196">
+          <li class="never" data-hits="" data-linenumber="256">
             
 
             
@@ -2188,7 +2794,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="197">
+          <li class="never" data-hits="" data-linenumber="257">
             
 
             
@@ -2198,7 +2804,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="198">
+          <li class="never" data-hits="" data-linenumber="258">
             
 
             
@@ -2208,7 +2814,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="199">
+          <li class="never" data-hits="" data-linenumber="259">
             
 
             
@@ -2218,7 +2824,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="200">
+          <li class="never" data-hits="" data-linenumber="260">
             
 
             
@@ -2228,7 +2834,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="201">
+          <li class="never" data-hits="" data-linenumber="261">
             
 
             
@@ -2238,7 +2844,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="202">
+          <li class="never" data-hits="" data-linenumber="262">
             
 
             
@@ -2248,7 +2854,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="203">
+          <li class="never" data-hits="" data-linenumber="263">
             
 
             
@@ -2258,7 +2864,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="204">
+          <li class="never" data-hits="" data-linenumber="264">
             
 
             
@@ -2268,7 +2874,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="205">
+          <li class="never" data-hits="" data-linenumber="265">
             
 
             
@@ -2278,7 +2884,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="206">
+          <li class="never" data-hits="" data-linenumber="266">
             
 
             
@@ -2288,7 +2894,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="207">
+          <li class="never" data-hits="" data-linenumber="267">
             
 
             
@@ -2298,7 +2904,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="208">
+          <li class="never" data-hits="" data-linenumber="268">
             
 
             
@@ -2308,7 +2914,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="209">
+          <li class="never" data-hits="" data-linenumber="269">
             
 
             
@@ -2318,7 +2924,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="210">
+          <li class="never" data-hits="" data-linenumber="270">
             
 
             
@@ -2328,7 +2934,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="211">
+          <li class="never" data-hits="" data-linenumber="271">
             
 
             
@@ -2338,7 +2944,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="212">
+          <li class="never" data-hits="" data-linenumber="272">
             
 
             
@@ -2348,7 +2954,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="213">
+          <li class="never" data-hits="" data-linenumber="273">
             
 
             
@@ -2358,7 +2964,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="214">
+          <li class="never" data-hits="" data-linenumber="274">
             
 
             
@@ -2368,7 +2974,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="215">
+          <li class="never" data-hits="" data-linenumber="275">
             
 
             
@@ -2378,7 +2984,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="216">
+          <li class="never" data-hits="" data-linenumber="276">
             
 
             
@@ -2388,7 +2994,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="217">
+          <li class="never" data-hits="" data-linenumber="277">
             
 
             
@@ -2398,7 +3004,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="218">
+          <li class="never" data-hits="" data-linenumber="278">
             
 
             
@@ -2408,7 +3014,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="219">
+          <li class="never" data-hits="" data-linenumber="279">
             
 
             
@@ -2418,7 +3024,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="220">
+          <li class="never" data-hits="" data-linenumber="280">
             
 
             
@@ -2428,7 +3034,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="221">
+          <li class="never" data-hits="" data-linenumber="281">
             
 
             
@@ -2438,7 +3044,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="222">
+          <li class="never" data-hits="" data-linenumber="282">
             
 
             
@@ -2448,7 +3054,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="223">
+          <li class="never" data-hits="" data-linenumber="283">
             
 
             
@@ -2458,7 +3064,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="224">
+          <li class="never" data-hits="" data-linenumber="284">
             
 
             
@@ -2468,7 +3074,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="225">
+          <li class="never" data-hits="" data-linenumber="285">
             
 
             
@@ -2478,7 +3084,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="226">
+          <li class="never" data-hits="" data-linenumber="286">
             
 
             
@@ -2488,7 +3094,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="227">
+          <li class="never" data-hits="" data-linenumber="287">
             
 
             
@@ -2498,7 +3104,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="228">
+          <li class="never" data-hits="" data-linenumber="288">
             
 
             
@@ -2508,7 +3114,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="229">
+          <li class="never" data-hits="" data-linenumber="289">
             
 
             
@@ -2518,7 +3124,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="230">
+          <li class="never" data-hits="" data-linenumber="290">
             
 
             
@@ -2528,7 +3134,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="231">
+          <li class="never" data-hits="" data-linenumber="291">
             
 
             
@@ -2538,7 +3144,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="232">
+          <li class="never" data-hits="" data-linenumber="292">
             
 
             
@@ -2548,7 +3154,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="233">
+          <li class="never" data-hits="" data-linenumber="293">
             
 
             
@@ -2558,7 +3164,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="234">
+          <li class="never" data-hits="" data-linenumber="294">
             
 
             
@@ -2568,7 +3174,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="235">
+          <li class="never" data-hits="" data-linenumber="295">
             
 
             
@@ -2578,7 +3184,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="236">
+          <li class="never" data-hits="" data-linenumber="296">
             
 
             
@@ -2588,7 +3194,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="237">
+          <li class="never" data-hits="" data-linenumber="297">
             
 
             
@@ -2598,7 +3204,7 @@
         </div>
       
         <div>
-          <li class="covered" data-hits="1" data-linenumber="238">
+          <li class="covered" data-hits="1" data-linenumber="298">
             
               <span class="hits">1</span>
             
@@ -2610,7 +3216,7 @@
         </div>
       
         <div>
-          <li class="covered" data-hits="1" data-linenumber="239">
+          <li class="covered" data-hits="1" data-linenumber="299">
             
               <span class="hits">1</span>
             
@@ -2622,7 +3228,7 @@
         </div>
       
         <div>
-          <li class="covered" data-hits="1" data-linenumber="240">
+          <li class="covered" data-hits="1" data-linenumber="300">
             
               <span class="hits">1</span>
             
@@ -2634,7 +3240,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="241">
+          <li class="never" data-hits="" data-linenumber="301">
             
 
             
@@ -2644,7 +3250,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="242">
+          <li class="never" data-hits="" data-linenumber="302">
             
 
             
@@ -2654,7 +3260,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="243">
+          <li class="never" data-hits="" data-linenumber="303">
             
 
             
@@ -2664,7 +3270,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="244">
+          <li class="never" data-hits="" data-linenumber="304">
             
 
             
@@ -2674,7 +3280,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="245">
+          <li class="never" data-hits="" data-linenumber="305">
             
 
             
@@ -2684,7 +3290,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="246">
+          <li class="never" data-hits="" data-linenumber="306">
             
 
             
@@ -2694,7 +3300,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="247">
+          <li class="never" data-hits="" data-linenumber="307">
             
 
             
@@ -2704,7 +3310,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="248">
+          <li class="never" data-hits="" data-linenumber="308">
             
 
             
@@ -2714,7 +3320,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="249">
+          <li class="never" data-hits="" data-linenumber="309">
             
 
             
@@ -2724,7 +3330,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="250">
+          <li class="never" data-hits="" data-linenumber="310">
             
 
             
@@ -2734,7 +3340,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="251">
+          <li class="never" data-hits="" data-linenumber="311">
             
 
             
@@ -2744,7 +3350,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="252">
+          <li class="never" data-hits="" data-linenumber="312">
             
 
             
@@ -2754,7 +3360,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="253">
+          <li class="never" data-hits="" data-linenumber="313">
             
 
             
@@ -2764,7 +3370,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="254">
+          <li class="never" data-hits="" data-linenumber="314">
             
 
             
@@ -2774,7 +3380,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="255">
+          <li class="never" data-hits="" data-linenumber="315">
             
 
             
@@ -2784,7 +3390,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="256">
+          <li class="never" data-hits="" data-linenumber="316">
             
 
             
@@ -2794,7 +3400,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="257">
+          <li class="never" data-hits="" data-linenumber="317">
             
 
             
@@ -2804,7 +3410,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="258">
+          <li class="never" data-hits="" data-linenumber="318">
             
 
             
@@ -2814,7 +3420,7 @@
         </div>
       
         <div>
-          <li class="covered" data-hits="1" data-linenumber="259">
+          <li class="covered" data-hits="1" data-linenumber="319">
             
               <span class="hits">1</span>
             
@@ -2826,7 +3432,7 @@
         </div>
       
         <div>
-          <li class="covered" data-hits="1" data-linenumber="260">
+          <li class="covered" data-hits="1" data-linenumber="320">
             
               <span class="hits">1</span>
             
@@ -2838,7 +3444,7 @@
         </div>
       
         <div>
-          <li class="covered" data-hits="1" data-linenumber="261">
+          <li class="covered" data-hits="1" data-linenumber="321">
             
               <span class="hits">1</span>
             
@@ -2850,7 +3456,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="262">
+          <li class="never" data-hits="" data-linenumber="322">
             
 
             
@@ -2860,7 +3466,7 @@
         </div>
       
         <div>
-          <li class="covered" data-hits="1" data-linenumber="263">
+          <li class="covered" data-hits="1" data-linenumber="323">
             
               <span class="hits">1</span>
             
@@ -2872,39 +3478,49 @@
         </div>
       
         <div>
-          <li class="covered" data-hits="1" data-linenumber="264">
+          <li class="covered" data-hits="1" data-linenumber="324">
             
               <span class="hits">1</span>
             
 
             
 
-            <code class="ruby">  db.execute(</code>
+            <code class="ruby">  db_exec(</code>
           </li>
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="265">
+          <li class="never" data-hits="" data-linenumber="325">
             
 
             
 
-            <code class="ruby">    &#39;INSERT INTO users (email, password, name) VALUES (?, ?, ?)&#39;,</code>
+            <code class="ruby">    db,</code>
           </li>
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="266">
+          <li class="never" data-hits="" data-linenumber="326">
             
 
             
 
-            <code class="ruby">    data[&#39;email&#39;], data[&#39;password&#39;], data[&#39;name&#39;]</code>
+            <code class="ruby">    &#39;INSERT INTO users (email, password, name) VALUES ($1, $2, $3) RETURNING id&#39;,</code>
           </li>
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="267">
+          <li class="never" data-hits="" data-linenumber="327">
+            
+
+            
+
+            <code class="ruby">    [data[&#39;email&#39;], data[&#39;password&#39;], data[&#39;name&#39;]],</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="328">
             
 
             
@@ -2914,19 +3530,7 @@
         </div>
       
         <div>
-          <li class="covered" data-hits="1" data-linenumber="268">
-            
-              <span class="hits">1</span>
-            
-
-            
-
-            <code class="ruby">  db.last_insert_row_id</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="covered" data-hits="1" data-linenumber="269">
+          <li class="covered" data-hits="1" data-linenumber="329">
             
               <span class="hits">1</span>
             
@@ -2938,7 +3542,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="270">
+          <li class="never" data-hits="" data-linenumber="330">
             
 
             
@@ -2948,7 +3552,7 @@
         </div>
       
         <div>
-          <li class="covered" data-hits="1" data-linenumber="271">
+          <li class="covered" data-hits="1" data-linenumber="331">
             
               <span class="hits">1</span>
             
@@ -2960,7 +3564,7 @@
         </div>
       
         <div>
-          <li class="covered" data-hits="1" data-linenumber="272">
+          <li class="covered" data-hits="1" data-linenumber="332">
             
               <span class="hits">1</span>
             
@@ -2972,7 +3576,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="273">
+          <li class="never" data-hits="" data-linenumber="333">
             
 
             
@@ -2982,7 +3586,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="274">
+          <li class="never" data-hits="" data-linenumber="334">
             
 
             
@@ -2992,7 +3596,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="275">
+          <li class="never" data-hits="" data-linenumber="335">
             
 
             
@@ -3002,7 +3606,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="276">
+          <li class="never" data-hits="" data-linenumber="336">
             
 
             
@@ -3012,7 +3616,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="277">
+          <li class="never" data-hits="" data-linenumber="337">
             
 
             
@@ -3022,7 +3626,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="278">
+          <li class="never" data-hits="" data-linenumber="338">
             
 
             
@@ -3032,7 +3636,7 @@
         </div>
       
         <div>
-          <li class="covered" data-hits="1" data-linenumber="279">
+          <li class="covered" data-hits="1" data-linenumber="339">
             
               <span class="hits">1</span>
             
@@ -3044,7 +3648,7 @@
         </div>
       
         <div>
-          <li class="missed" data-hits="0" data-linenumber="280">
+          <li class="missed" data-hits="0" data-linenumber="340">
             
 
             
@@ -3054,7 +3658,7 @@
         </div>
       
         <div>
-          <li class="missed" data-hits="0" data-linenumber="281">
+          <li class="missed" data-hits="0" data-linenumber="341">
             
 
             
@@ -3064,7 +3668,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="282">
+          <li class="never" data-hits="" data-linenumber="342">
             
 
             
@@ -3074,7 +3678,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="283">
+          <li class="never" data-hits="" data-linenumber="343">
             
 
             
@@ -3084,7 +3688,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="284">
+          <li class="never" data-hits="" data-linenumber="344">
             
 
             
@@ -3094,7 +3698,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="285">
+          <li class="never" data-hits="" data-linenumber="345">
             
 
             
@@ -3104,7 +3708,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="286">
+          <li class="never" data-hits="" data-linenumber="346">
             
 
             
@@ -3114,7 +3718,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="287">
+          <li class="never" data-hits="" data-linenumber="347">
             
 
             
@@ -3124,7 +3728,7 @@
         </div>
       
         <div>
-          <li class="covered" data-hits="1" data-linenumber="288">
+          <li class="covered" data-hits="1" data-linenumber="348">
             
               <span class="hits">1</span>
             
@@ -3136,7 +3740,7 @@
         </div>
       
         <div>
-          <li class="missed" data-hits="0" data-linenumber="289">
+          <li class="missed" data-hits="0" data-linenumber="349">
             
 
             
@@ -3146,7 +3750,7 @@
         </div>
       
         <div>
-          <li class="missed" data-hits="0" data-linenumber="290">
+          <li class="missed" data-hits="0" data-linenumber="350">
             
 
             
@@ -3156,7 +3760,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="291">
+          <li class="never" data-hits="" data-linenumber="351">
             
 
             
@@ -3166,7 +3770,7 @@
         </div>
       
         <div>
-          <li class="missed" data-hits="0" data-linenumber="292">
+          <li class="missed" data-hits="0" data-linenumber="352">
             
 
             
@@ -3176,7 +3780,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="293">
+          <li class="never" data-hits="" data-linenumber="353">
             
 
             
@@ -3186,7 +3790,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="294">
+          <li class="never" data-hits="" data-linenumber="354">
             
 
             
@@ -3196,7 +3800,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="295">
+          <li class="never" data-hits="" data-linenumber="355">
             
 
             
@@ -3206,7 +3810,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="296">
+          <li class="never" data-hits="" data-linenumber="356">
             
 
             
@@ -3216,7 +3820,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="297">
+          <li class="never" data-hits="" data-linenumber="357">
             
 
             
@@ -3226,7 +3830,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="298">
+          <li class="never" data-hits="" data-linenumber="358">
             
 
             
@@ -3236,7 +3840,7 @@
         </div>
       
         <div>
-          <li class="covered" data-hits="1" data-linenumber="299">
+          <li class="covered" data-hits="1" data-linenumber="359">
             
               <span class="hits">1</span>
             
@@ -3248,7 +3852,7 @@
         </div>
       
         <div>
-          <li class="missed" data-hits="0" data-linenumber="300">
+          <li class="missed" data-hits="0" data-linenumber="360">
             
 
             
@@ -3258,616 +3862,12 @@
         </div>
       
         <div>
-          <li class="missed" data-hits="0" data-linenumber="301">
+          <li class="missed" data-hits="0" data-linenumber="361">
             
 
             
 
             <code class="ruby">  data = JSON.parse(request.body.read)</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="302">
-            
-
-            
-
-            <code class="ruby"></code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="303">
-            
-
-            
-
-            <code class="ruby">  response = {</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="missed" data-hits="0" data-linenumber="304">
-            
-
-            
-
-            <code class="ruby">    email: data[&#39;email&#39;] || &#39;user@example.com&#39;,</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="305">
-            
-
-            
-
-            <code class="ruby">    name: data[&#39;name&#39;] || &#39;Example User&#39;,</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="306">
-            
-
-            
-
-            <code class="ruby">  }</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="307">
-            
-
-            
-
-            <code class="ruby"></code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="missed" data-hits="0" data-linenumber="308">
-            
-
-            
-
-            <code class="ruby">  json(response)</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="309">
-            
-
-            
-
-            <code class="ruby">end</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="310">
-            
-
-            
-
-            <code class="ruby"></code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="311">
-            
-
-            
-
-            <code class="ruby"># Create user token (login)</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="covered" data-hits="1" data-linenumber="312">
-            
-              <span class="hits">1</span>
-            
-
-            
-
-            <code class="ruby">post &#39;/api/user/token/&#39; do</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="missed" data-hits="0" data-linenumber="313">
-            
-
-            
-
-            <code class="ruby">  puts &#39;Route invoked: POST /api/user/token/&#39;</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="missed" data-hits="0" data-linenumber="314">
-            
-
-            
-
-            <code class="ruby">  data = JSON.parse(request.body.read)</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="315">
-            
-
-            
-
-            <code class="ruby"></code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="missed" data-hits="0" data-linenumber="316">
-            
-
-            
-
-            <code class="ruby">  json({</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="317">
-            
-
-            
-
-            <code class="ruby">         email: data[&#39;email&#39;],</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="318">
-            
-
-            
-
-            <code class="ruby">         password: data[&#39;password&#39;],</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="319">
-            
-
-            
-
-            <code class="ruby">       })</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="320">
-            
-
-            
-
-            <code class="ruby">end</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="321">
-            
-
-            
-
-            <code class="ruby"></code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="322">
-            
-
-            
-
-            <code class="ruby"># ============================================</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="323">
-            
-
-            
-
-            <code class="ruby"># RECIPE API ENDPOINTS</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="324">
-            
-
-            
-
-            <code class="ruby"># ============================================</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="325">
-            
-
-            
-
-            <code class="ruby"></code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="326">
-            
-
-            
-
-            <code class="ruby"># List all recipes</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="covered" data-hits="1" data-linenumber="327">
-            
-              <span class="hits">1</span>
-            
-
-            
-
-            <code class="ruby">get &#39;/api/recipe/recipes/&#39; do</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="missed" data-hits="0" data-linenumber="328">
-            
-
-            
-
-            <code class="ruby">  puts &#39;Route invoked: GET /api/recipe/recipes/&#39;</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="329">
-            
-
-            
-
-            <code class="ruby"></code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="missed" data-hits="0" data-linenumber="330">
-            
-
-            
-
-            <code class="ruby">  db = db_connection</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="missed" data-hits="0" data-linenumber="331">
-            
-
-            
-
-            <code class="ruby">  recipes = db.execute(&#39;SELECT id, title, time_minutes, price, link FROM recipes&#39;)</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="332">
-            
-
-            
-
-            <code class="ruby"></code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="missed" data-hits="0" data-linenumber="333">
-            
-
-            
-
-            <code class="ruby">  result = recipes.map do |recipe|</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="missed" data-hits="0" data-linenumber="334">
-            
-
-            
-
-            <code class="ruby">    ingredients = db.execute(</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="335">
-            
-
-            
-
-            <code class="ruby">      &#39;SELECT i.id, i.name, ri.amount, ri.unit FROM ingredients i</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="336">
-            
-
-            
-
-            <code class="ruby">       JOIN recipe_ingredients ri ON i.id = ri.ingredient_id</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="337">
-            
-
-            
-
-            <code class="ruby">       WHERE ri.recipe_id = ?&#39;,</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="338">
-            
-
-            
-
-            <code class="ruby">      recipe[&#39;id&#39;],</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="339">
-            
-
-            
-
-            <code class="ruby">    )</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="340">
-            
-
-            
-
-            <code class="ruby"></code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="missed" data-hits="0" data-linenumber="341">
-            
-
-            
-
-            <code class="ruby">    tags = db.execute(</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="342">
-            
-
-            
-
-            <code class="ruby">      &#39;SELECT t.id, t.name FROM tags t</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="343">
-            
-
-            
-
-            <code class="ruby">       JOIN recipe_tags rt ON t.id = rt.tag_id</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="344">
-            
-
-            
-
-            <code class="ruby">       WHERE rt.recipe_id = ?&#39;,</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="345">
-            
-
-            
-
-            <code class="ruby">      recipe[&#39;id&#39;],</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="346">
-            
-
-            
-
-            <code class="ruby">    )</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="347">
-            
-
-            
-
-            <code class="ruby"></code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="348">
-            
-
-            
-
-            <code class="ruby">    {</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="missed" data-hits="0" data-linenumber="349">
-            
-
-            
-
-            <code class="ruby">      &#39;id&#39; =&gt; recipe[&#39;id&#39;],</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="350">
-            
-
-            
-
-            <code class="ruby">      &#39;title&#39; =&gt; recipe[&#39;title&#39;],</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="351">
-            
-
-            
-
-            <code class="ruby">      &#39;time_minutes&#39; =&gt; recipe[&#39;time_minutes&#39;],</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="352">
-            
-
-            
-
-            <code class="ruby">      &#39;price&#39; =&gt; recipe[&#39;price&#39;],</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="353">
-            
-
-            
-
-            <code class="ruby">      &#39;link&#39; =&gt; recipe[&#39;link&#39;] || &#39;&#39;,</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="354">
-            
-
-            
-
-            <code class="ruby">      &#39;ingredients&#39; =&gt; rows_to_hashes(ingredients),</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="355">
-            
-
-            
-
-            <code class="ruby">      &#39;tags&#39; =&gt; rows_to_hashes(tags),</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="356">
-            
-
-            
-
-            <code class="ruby">    }</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="357">
-            
-
-            
-
-            <code class="ruby">  end</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="358">
-            
-
-            
-
-            <code class="ruby"></code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="missed" data-hits="0" data-linenumber="359">
-            
-
-            
-
-            <code class="ruby">  db.close</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="missed" data-hits="0" data-linenumber="360">
-            
-
-            
-
-            <code class="ruby">  json(result)</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="361">
-            
-
-            
-
-            <code class="ruby">end</code>
           </li>
         </div>
       
@@ -3887,39 +3887,37 @@
 
             
 
-            <code class="ruby"># Create a new recipe</code>
+            <code class="ruby">  response = {</code>
           </li>
         </div>
       
         <div>
-          <li class="covered" data-hits="1" data-linenumber="364">
-            
-              <span class="hits">1</span>
+          <li class="missed" data-hits="0" data-linenumber="364">
             
 
             
 
-            <code class="ruby">post &#39;/api/recipe/recipes/&#39; do</code>
+            <code class="ruby">    email: data[&#39;email&#39;] || &#39;user@example.com&#39;,</code>
           </li>
         </div>
       
         <div>
-          <li class="missed" data-hits="0" data-linenumber="365">
+          <li class="never" data-hits="" data-linenumber="365">
             
 
             
 
-            <code class="ruby">  puts &#39;Route invoked: POST /api/recipe/recipes/&#39;</code>
+            <code class="ruby">    name: data[&#39;name&#39;] || &#39;Example User&#39;,</code>
           </li>
         </div>
       
         <div>
-          <li class="missed" data-hits="0" data-linenumber="366">
+          <li class="never" data-hits="" data-linenumber="366">
             
 
             
 
-            <code class="ruby">  data = JSON.parse(request.body.read)</code>
+            <code class="ruby">  }</code>
           </li>
         </div>
       
@@ -3939,112 +3937,12 @@
 
             
 
-            <code class="ruby">  status 201</code>
+            <code class="ruby">  json(response)</code>
           </li>
         </div>
       
         <div>
-          <li class="missed" data-hits="0" data-linenumber="369">
-            
-
-            
-
-            <code class="ruby">  json({</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="370">
-            
-
-            
-
-            <code class="ruby">         id: 1,</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="371">
-            
-
-            
-
-            <code class="ruby">         title: data[&#39;title&#39;],</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="372">
-            
-
-            
-
-            <code class="ruby">         time_minutes: data[&#39;time_minutes&#39;],</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="373">
-            
-
-            
-
-            <code class="ruby">         price: data[&#39;price&#39;],</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="374">
-            
-
-            
-
-            <code class="ruby">         link: data[&#39;link&#39;] || &#39;&#39;,</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="375">
-            
-
-            
-
-            <code class="ruby">         tags: data[&#39;tags&#39;] || [],</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="376">
-            
-
-            
-
-            <code class="ruby">         ingredients: data[&#39;ingredients&#39;] || [],</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="377">
-            
-
-            
-
-            <code class="ruby">         description: data[&#39;description&#39;] || &#39;&#39;,</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="378">
-            
-
-            
-
-            <code class="ruby">       })</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="379">
+          <li class="never" data-hits="" data-linenumber="369">
             
 
             
@@ -4054,7 +3952,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="380">
+          <li class="never" data-hits="" data-linenumber="370">
             
 
             
@@ -4064,44 +3962,144 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="381">
+          <li class="never" data-hits="" data-linenumber="371">
             
 
             
 
-            <code class="ruby"># Get a specific recipe</code>
+            <code class="ruby"># Create user token (login)</code>
           </li>
         </div>
       
         <div>
-          <li class="covered" data-hits="1" data-linenumber="382">
+          <li class="covered" data-hits="1" data-linenumber="372">
             
               <span class="hits">1</span>
             
 
             
 
-            <code class="ruby">get &#39;/api/recipe/recipes/:id/&#39; do</code>
+            <code class="ruby">post &#39;/api/user/token/&#39; do</code>
           </li>
         </div>
       
         <div>
-          <li class="missed" data-hits="0" data-linenumber="383">
+          <li class="missed" data-hits="0" data-linenumber="373">
             
 
             
 
-            <code class="ruby">  puts &#39;Route invoked: GET /api/recipe/recipes/:id/&#39;</code>
+            <code class="ruby">  puts &#39;Route invoked: POST /api/user/token/&#39;</code>
           </li>
         </div>
       
         <div>
-          <li class="missed" data-hits="0" data-linenumber="384">
+          <li class="missed" data-hits="0" data-linenumber="374">
             
 
             
 
-            <code class="ruby">  id = params[:id]</code>
+            <code class="ruby">  data = JSON.parse(request.body.read)</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="375">
+            
+
+            
+
+            <code class="ruby"></code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="missed" data-hits="0" data-linenumber="376">
+            
+
+            
+
+            <code class="ruby">  json({</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="377">
+            
+
+            
+
+            <code class="ruby">         email: data[&#39;email&#39;],</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="378">
+            
+
+            
+
+            <code class="ruby">         password: data[&#39;password&#39;],</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="379">
+            
+
+            
+
+            <code class="ruby">       })</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="380">
+            
+
+            
+
+            <code class="ruby">end</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="381">
+            
+
+            
+
+            <code class="ruby"></code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="382">
+            
+
+            
+
+            <code class="ruby"># ============================================</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="383">
+            
+
+            
+
+            <code class="ruby"># RECIPE API ENDPOINTS</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="384">
+            
+
+            
+
+            <code class="ruby"># ============================================</code>
           </li>
         </div>
       
@@ -4116,22 +4114,24 @@
         </div>
       
         <div>
-          <li class="missed" data-hits="0" data-linenumber="386">
+          <li class="never" data-hits="" data-linenumber="386">
             
 
             
 
-            <code class="ruby">  db = db_connection</code>
+            <code class="ruby"># List all recipes</code>
           </li>
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="387">
+          <li class="covered" data-hits="1" data-linenumber="387">
+            
+              <span class="hits">1</span>
             
 
             
 
-            <code class="ruby"></code>
+            <code class="ruby">get &#39;/api/recipe/recipes/&#39; do</code>
           </li>
         </div>
       
@@ -4141,7 +4141,7 @@
 
             
 
-            <code class="ruby">  recipe = db.get_first_row(</code>
+            <code class="ruby">  puts &#39;Route invoked: GET /api/recipe/recipes/&#39;</code>
           </li>
         </div>
       
@@ -4151,27 +4151,27 @@
 
             
 
-            <code class="ruby">    &#39;SELECT id, title, time_minutes, price, link, description FROM recipes WHERE id = ?&#39;,</code>
+            <code class="ruby"></code>
           </li>
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="390">
+          <li class="missed" data-hits="0" data-linenumber="390">
             
 
             
 
-            <code class="ruby">    id,</code>
+            <code class="ruby">  db = db_connection</code>
           </li>
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="391">
+          <li class="missed" data-hits="0" data-linenumber="391">
             
 
             
 
-            <code class="ruby">  )</code>
+            <code class="ruby">  recipes = db_exec(db, &#39;SELECT id, title, time_minutes, price, link FROM recipes&#39;)</code>
           </li>
         </div>
       
@@ -4191,17 +4191,17 @@
 
             
 
-            <code class="ruby">  ingredients = db.execute(</code>
+            <code class="ruby">  result = recipes.map do |recipe|</code>
           </li>
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="394">
+          <li class="missed" data-hits="0" data-linenumber="394">
             
 
             
 
-            <code class="ruby">    &#39;SELECT i.id, i.name, ri.amount, ri.unit FROM ingredients i</code>
+            <code class="ruby">    ingredients = db_exec(</code>
           </li>
         </div>
       
@@ -4211,7 +4211,7 @@
 
             
 
-            <code class="ruby">     JOIN recipe_ingredients ri ON i.id = ri.ingredient_id</code>
+            <code class="ruby">      &#39;SELECT i.id, i.name, ri.amount, ri.unit FROM ingredients i</code>
           </li>
         </div>
       
@@ -4221,7 +4221,7 @@
 
             
 
-            <code class="ruby">     WHERE ri.recipe_id = ?&#39;,</code>
+            <code class="ruby">       JOIN recipe_ingredients ri ON i.id = ri.ingredient_id</code>
           </li>
         </div>
       
@@ -4231,7 +4231,7 @@
 
             
 
-            <code class="ruby">    id,</code>
+            <code class="ruby">       WHERE ri.recipe_id = $1&#39;,</code>
           </li>
         </div>
       
@@ -4241,7 +4241,7 @@
 
             
 
-            <code class="ruby">  )</code>
+            <code class="ruby">      [recipe[&#39;id&#39;]],</code>
           </li>
         </div>
       
@@ -4251,27 +4251,27 @@
 
             
 
+            <code class="ruby">    )</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="400">
+            
+
+            
+
             <code class="ruby"></code>
           </li>
         </div>
       
         <div>
-          <li class="missed" data-hits="0" data-linenumber="400">
+          <li class="missed" data-hits="0" data-linenumber="401">
             
 
             
 
-            <code class="ruby">  tags = db.execute(</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="401">
-            
-
-            
-
-            <code class="ruby">    &#39;SELECT t.id, t.name FROM tags t</code>
+            <code class="ruby">    tags = db_exec(</code>
           </li>
         </div>
       
@@ -4281,7 +4281,7 @@
 
             
 
-            <code class="ruby">     JOIN recipe_tags rt ON t.id = rt.tag_id</code>
+            <code class="ruby">      &#39;SELECT t.id, t.name FROM tags t</code>
           </li>
         </div>
       
@@ -4291,7 +4291,7 @@
 
             
 
-            <code class="ruby">     WHERE rt.recipe_id = ?&#39;,</code>
+            <code class="ruby">       JOIN recipe_tags rt ON t.id = rt.tag_id</code>
           </li>
         </div>
       
@@ -4301,7 +4301,7 @@
 
             
 
-            <code class="ruby">    id,</code>
+            <code class="ruby">       WHERE rt.recipe_id = $1&#39;,</code>
           </li>
         </div>
       
@@ -4311,7 +4311,7 @@
 
             
 
-            <code class="ruby">  )</code>
+            <code class="ruby">      [recipe[&#39;id&#39;]],</code>
           </li>
         </div>
       
@@ -4321,17 +4321,17 @@
 
             
 
-            <code class="ruby"></code>
+            <code class="ruby">    )</code>
           </li>
         </div>
       
         <div>
-          <li class="missed" data-hits="0" data-linenumber="407">
+          <li class="never" data-hits="" data-linenumber="407">
             
 
             
 
-            <code class="ruby">  db.close</code>
+            <code class="ruby"></code>
           </li>
         </div>
       
@@ -4341,7 +4341,7 @@
 
             
 
-            <code class="ruby"></code>
+            <code class="ruby">    {</code>
           </li>
         </div>
       
@@ -4351,7 +4351,7 @@
 
             
 
-            <code class="ruby">  json({</code>
+            <code class="ruby">      &#39;id&#39; =&gt; recipe[&#39;id&#39;],</code>
           </li>
         </div>
       
@@ -4361,7 +4361,7 @@
 
             
 
-            <code class="ruby">         id: recipe[&#39;id&#39;],</code>
+            <code class="ruby">      &#39;title&#39; =&gt; recipe[&#39;title&#39;],</code>
           </li>
         </div>
       
@@ -4371,7 +4371,7 @@
 
             
 
-            <code class="ruby">         title: recipe[&#39;title&#39;],</code>
+            <code class="ruby">      &#39;time_minutes&#39; =&gt; recipe[&#39;time_minutes&#39;],</code>
           </li>
         </div>
       
@@ -4381,7 +4381,7 @@
 
             
 
-            <code class="ruby">         time_minutes: recipe[&#39;time_minutes&#39;],</code>
+            <code class="ruby">      &#39;price&#39; =&gt; recipe[&#39;price&#39;],</code>
           </li>
         </div>
       
@@ -4391,7 +4391,7 @@
 
             
 
-            <code class="ruby">         price: recipe[&#39;price&#39;],</code>
+            <code class="ruby">      &#39;link&#39; =&gt; recipe[&#39;link&#39;] || &#39;&#39;,</code>
           </li>
         </div>
       
@@ -4401,7 +4401,7 @@
 
             
 
-            <code class="ruby">         link: recipe[&#39;link&#39;] || &#39;&#39;,</code>
+            <code class="ruby">      &#39;ingredients&#39; =&gt; rows_to_hashes(ingredients),</code>
           </li>
         </div>
       
@@ -4411,7 +4411,7 @@
 
             
 
-            <code class="ruby">         description: recipe[&#39;description&#39;] || &#39;&#39;,</code>
+            <code class="ruby">      &#39;tags&#39; =&gt; rows_to_hashes(tags),</code>
           </li>
         </div>
       
@@ -4421,7 +4421,7 @@
 
             
 
-            <code class="ruby">         ingredients: rows_to_hashes(ingredients),</code>
+            <code class="ruby">    }</code>
           </li>
         </div>
       
@@ -4431,7 +4431,7 @@
 
             
 
-            <code class="ruby">         tags: rows_to_hashes(tags),</code>
+            <code class="ruby">  end</code>
           </li>
         </div>
       
@@ -4441,27 +4441,27 @@
 
             
 
-            <code class="ruby">       })</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="419">
-            
-
-            
-
-            <code class="ruby">end</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="420">
-            
-
-            
-
             <code class="ruby"></code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="missed" data-hits="0" data-linenumber="419">
+            
+
+            
+
+            <code class="ruby">  db.close</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="missed" data-hits="0" data-linenumber="420">
+            
+
+            
+
+            <code class="ruby">  json(result)</code>
           </li>
         </div>
       
@@ -4471,12 +4471,296 @@
 
             
 
+            <code class="ruby">end</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="422">
+            
+
+            
+
+            <code class="ruby"></code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="423">
+            
+
+            
+
+            <code class="ruby"># Create a new recipe</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="covered" data-hits="1" data-linenumber="424">
+            
+              <span class="hits">1</span>
+            
+
+            
+
+            <code class="ruby">post &#39;/api/recipe/recipes/&#39; do</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="missed" data-hits="0" data-linenumber="425">
+            
+
+            
+
+            <code class="ruby">  puts &#39;Route invoked: POST /api/recipe/recipes/&#39;</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="missed" data-hits="0" data-linenumber="426">
+            
+
+            
+
+            <code class="ruby">  data = JSON.parse(request.body.read)</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="427">
+            
+
+            
+
+            <code class="ruby"></code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="missed" data-hits="0" data-linenumber="428">
+            
+
+            
+
+            <code class="ruby">  status 201</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="missed" data-hits="0" data-linenumber="429">
+            
+
+            
+
+            <code class="ruby">  json({</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="430">
+            
+
+            
+
+            <code class="ruby">         id: 1,</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="431">
+            
+
+            
+
+            <code class="ruby">         title: data[&#39;title&#39;],</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="432">
+            
+
+            
+
+            <code class="ruby">         time_minutes: data[&#39;time_minutes&#39;],</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="433">
+            
+
+            
+
+            <code class="ruby">         price: data[&#39;price&#39;],</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="434">
+            
+
+            
+
+            <code class="ruby">         link: data[&#39;link&#39;] || &#39;&#39;,</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="435">
+            
+
+            
+
+            <code class="ruby">         tags: data[&#39;tags&#39;] || [],</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="436">
+            
+
+            
+
+            <code class="ruby">         ingredients: data[&#39;ingredients&#39;] || [],</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="437">
+            
+
+            
+
+            <code class="ruby">         description: data[&#39;description&#39;] || &#39;&#39;,</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="438">
+            
+
+            
+
+            <code class="ruby">       })</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="439">
+            
+
+            
+
+            <code class="ruby">end</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="440">
+            
+
+            
+
+            <code class="ruby"></code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="441">
+            
+
+            
+
+            <code class="ruby"># Get a specific recipe</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="covered" data-hits="1" data-linenumber="442">
+            
+              <span class="hits">1</span>
+            
+
+            
+
+            <code class="ruby">get &#39;/api/recipe/recipes/:id/&#39; do</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="missed" data-hits="0" data-linenumber="443">
+            
+
+            
+
+            <code class="ruby">  puts &#39;Route invoked: GET /api/recipe/recipes/:id/&#39;</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="missed" data-hits="0" data-linenumber="444">
+            
+
+            
+
+            <code class="ruby">  id = params[:id]</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="445">
+            
+
+            
+
+            <code class="ruby"></code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="missed" data-hits="0" data-linenumber="446">
+            
+
+            
+
+            <code class="ruby">  json(fetch_recipe_data(id))</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="447">
+            
+
+            
+
+            <code class="ruby">end</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="448">
+            
+
+            
+
+            <code class="ruby"></code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="449">
+            
+
+            
+
             <code class="ruby"># Update a recipe (full update)</code>
           </li>
         </div>
       
         <div>
-          <li class="covered" data-hits="1" data-linenumber="422">
+          <li class="covered" data-hits="1" data-linenumber="450">
             
               <span class="hits">1</span>
             
@@ -4488,7 +4772,7 @@
         </div>
       
         <div>
-          <li class="missed" data-hits="0" data-linenumber="423">
+          <li class="missed" data-hits="0" data-linenumber="451">
             
 
             
@@ -4498,7 +4782,7 @@
         </div>
       
         <div>
-          <li class="missed" data-hits="0" data-linenumber="424">
+          <li class="missed" data-hits="0" data-linenumber="452">
             
 
             
@@ -4508,7 +4792,7 @@
         </div>
       
         <div>
-          <li class="missed" data-hits="0" data-linenumber="425">
+          <li class="missed" data-hits="0" data-linenumber="453">
             
 
             
@@ -4518,7 +4802,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="426">
+          <li class="never" data-hits="" data-linenumber="454">
             
 
             
@@ -4528,7 +4812,7 @@
         </div>
       
         <div>
-          <li class="missed" data-hits="0" data-linenumber="427">
+          <li class="missed" data-hits="0" data-linenumber="455">
             
 
             
@@ -4538,7 +4822,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="428">
+          <li class="never" data-hits="" data-linenumber="456">
             
 
             
@@ -4548,7 +4832,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="429">
+          <li class="never" data-hits="" data-linenumber="457">
             
 
             
@@ -4558,7 +4842,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="430">
+          <li class="never" data-hits="" data-linenumber="458">
             
 
             
@@ -4568,7 +4852,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="431">
+          <li class="never" data-hits="" data-linenumber="459">
             
 
             
@@ -4578,7 +4862,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="432">
+          <li class="never" data-hits="" data-linenumber="460">
             
 
             
@@ -4588,7 +4872,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="433">
+          <li class="never" data-hits="" data-linenumber="461">
             
 
             
@@ -4598,7 +4882,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="434">
+          <li class="never" data-hits="" data-linenumber="462">
             
 
             
@@ -4608,7 +4892,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="435">
+          <li class="never" data-hits="" data-linenumber="463">
             
 
             
@@ -4618,7 +4902,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="436">
+          <li class="never" data-hits="" data-linenumber="464">
             
 
             
@@ -4628,7 +4912,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="437">
+          <li class="never" data-hits="" data-linenumber="465">
             
 
             
@@ -4638,7 +4922,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="438">
+          <li class="never" data-hits="" data-linenumber="466">
             
 
             
@@ -4648,7 +4932,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="439">
+          <li class="never" data-hits="" data-linenumber="467">
             
 
             
@@ -4658,7 +4942,7 @@
         </div>
       
         <div>
-          <li class="covered" data-hits="1" data-linenumber="440">
+          <li class="covered" data-hits="1" data-linenumber="468">
             
               <span class="hits">1</span>
             
@@ -4670,7 +4954,7 @@
         </div>
       
         <div>
-          <li class="missed" data-hits="0" data-linenumber="441">
+          <li class="missed" data-hits="0" data-linenumber="469">
             
 
             
@@ -4680,294 +4964,12 @@
         </div>
       
         <div>
-          <li class="missed" data-hits="0" data-linenumber="442">
-            
-
-            
-
-            <code class="ruby">  id = params[:id]</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="missed" data-hits="0" data-linenumber="443">
-            
-
-            
-
-            <code class="ruby">  data = JSON.parse(request.body.read)</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="444">
-            
-
-            
-
-            <code class="ruby"></code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="445">
-            
-
-            
-
-            <code class="ruby">  response = {</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="missed" data-hits="0" data-linenumber="446">
-            
-
-            
-
-            <code class="ruby">    id: id.to_i,</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="447">
-            
-
-            
-
-            <code class="ruby">    title: data[&#39;title&#39;] || &#39;Sample Recipe&#39;,</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="448">
-            
-
-            
-
-            <code class="ruby">    time_minutes: data[&#39;time_minutes&#39;] || 30,</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="449">
-            
-
-            
-
-            <code class="ruby">    price: data[&#39;price&#39;] || &#39;10.00&#39;,</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="450">
-            
-
-            
-
-            <code class="ruby">    link: data[&#39;link&#39;] || &#39;&#39;,</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="451">
-            
-
-            
-
-            <code class="ruby">    tags: data[&#39;tags&#39;] || [],</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="452">
-            
-
-            
-
-            <code class="ruby">    ingredients: data[&#39;ingredients&#39;] || [],</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="453">
-            
-
-            
-
-            <code class="ruby">    description: data[&#39;description&#39;] || &#39;&#39;,</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="454">
-            
-
-            
-
-            <code class="ruby">  }</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="455">
-            
-
-            
-
-            <code class="ruby"></code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="missed" data-hits="0" data-linenumber="456">
-            
-
-            
-
-            <code class="ruby">  json(response)</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="457">
-            
-
-            
-
-            <code class="ruby">end</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="458">
-            
-
-            
-
-            <code class="ruby"></code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="459">
-            
-
-            
-
-            <code class="ruby"># Delete a recipe</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="covered" data-hits="1" data-linenumber="460">
-            
-              <span class="hits">1</span>
-            
-
-            
-
-            <code class="ruby">delete &#39;/api/recipe/recipes/:id/&#39; do</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="missed" data-hits="0" data-linenumber="461">
-            
-
-            
-
-            <code class="ruby">  puts &#39;Route invoked: DELETE /api/recipe/recipes/:id/&#39;</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="missed" data-hits="0" data-linenumber="462">
-            
-
-            
-
-            <code class="ruby">  id = params[:id]</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="463">
-            
-
-            
-
-            <code class="ruby"></code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="missed" data-hits="0" data-linenumber="464">
-            
-
-            
-
-            <code class="ruby">  db = db_connection</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="465">
-            
-
-            
-
-            <code class="ruby"></code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="466">
-            
-
-            
-
-            <code class="ruby">  # Enable foreign keys to ensure CASCADE delete works</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="missed" data-hits="0" data-linenumber="467">
-            
-
-            
-
-            <code class="ruby">  db.execute(&#39;PRAGMA foreign_keys = ON&#39;)</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="468">
-            
-
-            
-
-            <code class="ruby"></code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="469">
-            
-
-            
-
-            <code class="ruby">  # Delete the recipe (CASCADE will handle recipe_ingredients and recipe_tags)</code>
-          </li>
-        </div>
-      
-        <div>
           <li class="missed" data-hits="0" data-linenumber="470">
             
 
             
 
-            <code class="ruby">  db.execute(&#39;DELETE FROM recipes WHERE id = ?&#39;, id)</code>
+            <code class="ruby">  id = params[:id]</code>
           </li>
         </div>
       
@@ -4977,7 +4979,7 @@
 
             
 
-            <code class="ruby">  db.close</code>
+            <code class="ruby">  data = JSON.parse(request.body.read)</code>
           </li>
         </div>
       
@@ -4992,22 +4994,22 @@
         </div>
       
         <div>
-          <li class="missed" data-hits="0" data-linenumber="473">
+          <li class="never" data-hits="" data-linenumber="473">
             
 
             
 
-            <code class="ruby">  status 204</code>
+            <code class="ruby">  response = {</code>
           </li>
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="474">
+          <li class="missed" data-hits="0" data-linenumber="474">
             
 
             
 
-            <code class="ruby">end</code>
+            <code class="ruby">    id: id.to_i,</code>
           </li>
         </div>
       
@@ -5017,7 +5019,7 @@
 
             
 
-            <code class="ruby"></code>
+            <code class="ruby">    title: data[&#39;title&#39;] || &#39;Sample Recipe&#39;,</code>
           </li>
         </div>
       
@@ -5027,39 +5029,37 @@
 
             
 
-            <code class="ruby"># Upload recipe image</code>
+            <code class="ruby">    time_minutes: data[&#39;time_minutes&#39;] || 30,</code>
           </li>
         </div>
       
         <div>
-          <li class="covered" data-hits="1" data-linenumber="477">
-            
-              <span class="hits">1</span>
+          <li class="never" data-hits="" data-linenumber="477">
             
 
             
 
-            <code class="ruby">post &#39;/api/recipe/recipes/:id/upload-image/&#39; do</code>
+            <code class="ruby">    price: data[&#39;price&#39;] || &#39;10.00&#39;,</code>
           </li>
         </div>
       
         <div>
-          <li class="missed" data-hits="0" data-linenumber="478">
+          <li class="never" data-hits="" data-linenumber="478">
             
 
             
 
-            <code class="ruby">  puts &#39;Route invoked: POST /api/recipe/recipes/:id/upload-image/&#39;</code>
+            <code class="ruby">    link: data[&#39;link&#39;] || &#39;&#39;,</code>
           </li>
         </div>
       
         <div>
-          <li class="missed" data-hits="0" data-linenumber="479">
+          <li class="never" data-hits="" data-linenumber="479">
             
 
             
 
-            <code class="ruby">  id = params[:id]</code>
+            <code class="ruby">    tags: data[&#39;tags&#39;] || [],</code>
           </li>
         </div>
       
@@ -5069,17 +5069,17 @@
 
             
 
-            <code class="ruby"></code>
+            <code class="ruby">    ingredients: data[&#39;ingredients&#39;] || [],</code>
           </li>
         </div>
       
         <div>
-          <li class="missed" data-hits="0" data-linenumber="481">
+          <li class="never" data-hits="" data-linenumber="481">
             
 
             
 
-            <code class="ruby">  json({</code>
+            <code class="ruby">    description: data[&#39;description&#39;] || &#39;&#39;,</code>
           </li>
         </div>
       
@@ -5089,7 +5089,7 @@
 
             
 
-            <code class="ruby">         id: id.to_i,</code>
+            <code class="ruby">  }</code>
           </li>
         </div>
       
@@ -5099,17 +5099,17 @@
 
             
 
-            <code class="ruby">         image: &#39;http://example.com/image.jpg&#39;,</code>
+            <code class="ruby"></code>
           </li>
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="484">
+          <li class="missed" data-hits="0" data-linenumber="484">
             
 
             
 
-            <code class="ruby">       })</code>
+            <code class="ruby">  json(response)</code>
           </li>
         </div>
       
@@ -5139,37 +5139,39 @@
 
             
 
-            <code class="ruby"># ============================================</code>
+            <code class="ruby"># Delete a recipe</code>
           </li>
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="488">
+          <li class="covered" data-hits="1" data-linenumber="488">
+            
+              <span class="hits">1</span>
             
 
             
 
-            <code class="ruby"># INGREDIENT API ENDPOINTS</code>
+            <code class="ruby">delete &#39;/api/recipe/recipes/:id/&#39; do</code>
           </li>
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="489">
+          <li class="missed" data-hits="0" data-linenumber="489">
             
 
             
 
-            <code class="ruby"># ============================================</code>
+            <code class="ruby">  puts &#39;Route invoked: DELETE /api/recipe/recipes/:id/&#39;</code>
           </li>
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="490">
+          <li class="missed" data-hits="0" data-linenumber="490">
             
 
             
 
-            <code class="ruby"></code>
+            <code class="ruby">  id = params[:id]</code>
           </li>
         </div>
       
@@ -5179,12 +5181,264 @@
 
             
 
+            <code class="ruby"></code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="missed" data-hits="0" data-linenumber="492">
+            
+
+            
+
+            <code class="ruby">  db = db_connection</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="493">
+            
+
+            
+
+            <code class="ruby"></code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="494">
+            
+
+            
+
+            <code class="ruby">  # Delete the recipe (CASCADE will handle recipe_ingredients and recipe_tags)</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="missed" data-hits="0" data-linenumber="495">
+            
+
+            
+
+            <code class="ruby">  db_exec(db, &#39;DELETE FROM recipes WHERE id = $1&#39;, [id])</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="missed" data-hits="0" data-linenumber="496">
+            
+
+            
+
+            <code class="ruby">  db.close</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="497">
+            
+
+            
+
+            <code class="ruby"></code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="missed" data-hits="0" data-linenumber="498">
+            
+
+            
+
+            <code class="ruby">  status 204</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="499">
+            
+
+            
+
+            <code class="ruby">end</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="500">
+            
+
+            
+
+            <code class="ruby"></code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="501">
+            
+
+            
+
+            <code class="ruby"># Upload recipe image</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="covered" data-hits="1" data-linenumber="502">
+            
+              <span class="hits">1</span>
+            
+
+            
+
+            <code class="ruby">post &#39;/api/recipe/recipes/:id/upload-image/&#39; do</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="missed" data-hits="0" data-linenumber="503">
+            
+
+            
+
+            <code class="ruby">  puts &#39;Route invoked: POST /api/recipe/recipes/:id/upload-image/&#39;</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="missed" data-hits="0" data-linenumber="504">
+            
+
+            
+
+            <code class="ruby">  id = params[:id]</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="505">
+            
+
+            
+
+            <code class="ruby"></code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="missed" data-hits="0" data-linenumber="506">
+            
+
+            
+
+            <code class="ruby">  json({</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="507">
+            
+
+            
+
+            <code class="ruby">         id: id.to_i,</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="508">
+            
+
+            
+
+            <code class="ruby">         image: &#39;http://example.com/image.jpg&#39;,</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="509">
+            
+
+            
+
+            <code class="ruby">       })</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="510">
+            
+
+            
+
+            <code class="ruby">end</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="511">
+            
+
+            
+
+            <code class="ruby"></code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="512">
+            
+
+            
+
+            <code class="ruby"># ============================================</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="513">
+            
+
+            
+
+            <code class="ruby"># INGREDIENT API ENDPOINTS</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="514">
+            
+
+            
+
+            <code class="ruby"># ============================================</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="515">
+            
+
+            
+
+            <code class="ruby"></code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="516">
+            
+
+            
+
             <code class="ruby"># List all ingredients</code>
           </li>
         </div>
       
         <div>
-          <li class="covered" data-hits="1" data-linenumber="492">
+          <li class="covered" data-hits="1" data-linenumber="517">
             
               <span class="hits">1</span>
             
@@ -5196,7 +5450,7 @@
         </div>
       
         <div>
-          <li class="covered" data-hits="1" data-linenumber="493">
+          <li class="covered" data-hits="1" data-linenumber="518">
             
               <span class="hits">1</span>
             
@@ -5208,7 +5462,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="494">
+          <li class="never" data-hits="" data-linenumber="519">
             
 
             
@@ -5218,7 +5472,7 @@
         </div>
       
         <div>
-          <li class="covered" data-hits="1" data-linenumber="495">
+          <li class="covered" data-hits="1" data-linenumber="520">
             
               <span class="hits">1</span>
             
@@ -5230,19 +5484,19 @@
         </div>
       
         <div>
-          <li class="covered" data-hits="1" data-linenumber="496">
+          <li class="covered" data-hits="1" data-linenumber="521">
             
               <span class="hits">1</span>
             
 
             
 
-            <code class="ruby">  ingredients = db.execute(&#39;SELECT id, name FROM ingredients&#39;)</code>
+            <code class="ruby">  ingredients = db_exec(db, &#39;SELECT id, name FROM ingredients&#39;)</code>
           </li>
         </div>
       
         <div>
-          <li class="covered" data-hits="1" data-linenumber="497">
+          <li class="covered" data-hits="1" data-linenumber="522">
             
               <span class="hits">1</span>
             
@@ -5254,7 +5508,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="498">
+          <li class="never" data-hits="" data-linenumber="523">
             
 
             
@@ -5264,7 +5518,7 @@
         </div>
       
         <div>
-          <li class="covered" data-hits="1" data-linenumber="499">
+          <li class="covered" data-hits="1" data-linenumber="524">
             
               <span class="hits">1</span>
             
@@ -5276,7 +5530,7 @@
         </div>
       
         <div>
-          <li class="covered" data-hits="1" data-linenumber="500">
+          <li class="covered" data-hits="1" data-linenumber="525">
             
               <span class="hits">1</span>
             
@@ -5288,7 +5542,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="501">
+          <li class="never" data-hits="" data-linenumber="526">
             
 
             
@@ -5298,7 +5552,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="502">
+          <li class="never" data-hits="" data-linenumber="527">
             
 
             
@@ -5308,7 +5562,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="503">
+          <li class="never" data-hits="" data-linenumber="528">
             
 
             
@@ -5318,7 +5572,7 @@
         </div>
       
         <div>
-          <li class="covered" data-hits="1" data-linenumber="504">
+          <li class="covered" data-hits="1" data-linenumber="529">
             
               <span class="hits">1</span>
             
@@ -5330,7 +5584,7 @@
         </div>
       
         <div>
-          <li class="missed" data-hits="0" data-linenumber="505">
+          <li class="missed" data-hits="0" data-linenumber="530">
             
 
             
@@ -5340,7 +5594,7 @@
         </div>
       
         <div>
-          <li class="missed" data-hits="0" data-linenumber="506">
+          <li class="missed" data-hits="0" data-linenumber="531">
             
 
             
@@ -5350,7 +5604,7 @@
         </div>
       
         <div>
-          <li class="missed" data-hits="0" data-linenumber="507">
+          <li class="missed" data-hits="0" data-linenumber="532">
             
 
             
@@ -5360,7 +5614,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="508">
+          <li class="never" data-hits="" data-linenumber="533">
             
 
             
@@ -5370,7 +5624,7 @@
         </div>
       
         <div>
-          <li class="missed" data-hits="0" data-linenumber="509">
+          <li class="missed" data-hits="0" data-linenumber="534">
             
 
             
@@ -5380,7 +5634,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="510">
+          <li class="never" data-hits="" data-linenumber="535">
             
 
             
@@ -5390,7 +5644,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="511">
+          <li class="never" data-hits="" data-linenumber="536">
             
 
             
@@ -5400,7 +5654,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="512">
+          <li class="never" data-hits="" data-linenumber="537">
             
 
             
@@ -5410,7 +5664,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="513">
+          <li class="never" data-hits="" data-linenumber="538">
             
 
             
@@ -5420,7 +5674,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="514">
+          <li class="never" data-hits="" data-linenumber="539">
             
 
             
@@ -5430,7 +5684,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="515">
+          <li class="never" data-hits="" data-linenumber="540">
             
 
             
@@ -5440,7 +5694,7 @@
         </div>
       
         <div>
-          <li class="covered" data-hits="1" data-linenumber="516">
+          <li class="covered" data-hits="1" data-linenumber="541">
             
               <span class="hits">1</span>
             
@@ -5452,7 +5706,7 @@
         </div>
       
         <div>
-          <li class="missed" data-hits="0" data-linenumber="517">
+          <li class="missed" data-hits="0" data-linenumber="542">
             
 
             
@@ -5462,7 +5716,7 @@
         </div>
       
         <div>
-          <li class="missed" data-hits="0" data-linenumber="518">
+          <li class="missed" data-hits="0" data-linenumber="543">
             
 
             
@@ -5472,7 +5726,7 @@
         </div>
       
         <div>
-          <li class="missed" data-hits="0" data-linenumber="519">
+          <li class="missed" data-hits="0" data-linenumber="544">
             
 
             
@@ -5482,7 +5736,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="520">
+          <li class="never" data-hits="" data-linenumber="545">
             
 
             
@@ -5492,7 +5746,7 @@
         </div>
       
         <div>
-          <li class="missed" data-hits="0" data-linenumber="521">
+          <li class="missed" data-hits="0" data-linenumber="546">
             
 
             
@@ -5502,7 +5756,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="522">
+          <li class="never" data-hits="" data-linenumber="547">
             
 
             
@@ -5512,7 +5766,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="523">
+          <li class="never" data-hits="" data-linenumber="548">
             
 
             
@@ -5522,7 +5776,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="524">
+          <li class="never" data-hits="" data-linenumber="549">
             
 
             
@@ -5532,7 +5786,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="525">
+          <li class="never" data-hits="" data-linenumber="550">
             
 
             
@@ -5542,7 +5796,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="526">
+          <li class="never" data-hits="" data-linenumber="551">
             
 
             
@@ -5552,7 +5806,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="527">
+          <li class="never" data-hits="" data-linenumber="552">
             
 
             
@@ -5562,7 +5816,7 @@
         </div>
       
         <div>
-          <li class="covered" data-hits="1" data-linenumber="528">
+          <li class="covered" data-hits="1" data-linenumber="553">
             
               <span class="hits">1</span>
             
@@ -5574,7 +5828,7 @@
         </div>
       
         <div>
-          <li class="missed" data-hits="0" data-linenumber="529">
+          <li class="missed" data-hits="0" data-linenumber="554">
             
 
             
@@ -5584,7 +5838,7 @@
         </div>
       
         <div>
-          <li class="missed" data-hits="0" data-linenumber="530">
+          <li class="missed" data-hits="0" data-linenumber="555">
             
 
             
@@ -5594,266 +5848,12 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="531">
+          <li class="never" data-hits="" data-linenumber="556">
             
 
             
 
             <code class="ruby"></code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="missed" data-hits="0" data-linenumber="532">
-            
-
-            
-
-            <code class="ruby">  db = db_connection</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="missed" data-hits="0" data-linenumber="533">
-            
-
-            
-
-            <code class="ruby">  db.execute(&#39;DELETE FROM ingredients WHERE id = ?&#39;, id)</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="missed" data-hits="0" data-linenumber="534">
-            
-
-            
-
-            <code class="ruby">  db.close</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="535">
-            
-
-            
-
-            <code class="ruby"></code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="missed" data-hits="0" data-linenumber="536">
-            
-
-            
-
-            <code class="ruby">  status 204</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="537">
-            
-
-            
-
-            <code class="ruby">end</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="538">
-            
-
-            
-
-            <code class="ruby"></code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="539">
-            
-
-            
-
-            <code class="ruby"># ============================================</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="540">
-            
-
-            
-
-            <code class="ruby"># TAG API ENDPOINTS</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="541">
-            
-
-            
-
-            <code class="ruby"># ============================================</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="542">
-            
-
-            
-
-            <code class="ruby"></code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="543">
-            
-
-            
-
-            <code class="ruby"># List all tags</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="covered" data-hits="1" data-linenumber="544">
-            
-              <span class="hits">1</span>
-            
-
-            
-
-            <code class="ruby">get &#39;/api/recipe/tags/&#39; do</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="missed" data-hits="0" data-linenumber="545">
-            
-
-            
-
-            <code class="ruby">  puts &#39;Route invoked: GET /api/recipe/tags/&#39;</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="546">
-            
-
-            
-
-            <code class="ruby"></code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="missed" data-hits="0" data-linenumber="547">
-            
-
-            
-
-            <code class="ruby">  db = db_connection</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="missed" data-hits="0" data-linenumber="548">
-            
-
-            
-
-            <code class="ruby">  tags = db.execute(&#39;SELECT id, name FROM tags&#39;)</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="missed" data-hits="0" data-linenumber="549">
-            
-
-            
-
-            <code class="ruby">  db.close</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="550">
-            
-
-            
-
-            <code class="ruby"></code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="missed" data-hits="0" data-linenumber="551">
-            
-
-            
-
-            <code class="ruby">  result = rows_to_hashes(tags)</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="missed" data-hits="0" data-linenumber="552">
-            
-
-            
-
-            <code class="ruby">  json(result)</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="553">
-            
-
-            
-
-            <code class="ruby">end</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="554">
-            
-
-            
-
-            <code class="ruby"></code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="555">
-            
-
-            
-
-            <code class="ruby"># Update a tag (full update)</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="covered" data-hits="1" data-linenumber="556">
-            
-              <span class="hits">1</span>
-            
-
-            
-
-            <code class="ruby">put &#39;/api/recipe/tags/:id/&#39; do</code>
           </li>
         </div>
       
@@ -5863,7 +5863,7 @@
 
             
 
-            <code class="ruby">  puts &#39;Route invoked: PUT /api/recipe/tags/:id/&#39;</code>
+            <code class="ruby">  db = db_connection</code>
           </li>
         </div>
       
@@ -5873,7 +5873,7 @@
 
             
 
-            <code class="ruby">  id = params[:id]</code>
+            <code class="ruby">  db_exec(db, &#39;DELETE FROM ingredients WHERE id = $1&#39;, [id])</code>
           </li>
         </div>
       
@@ -5883,7 +5883,7 @@
 
             
 
-            <code class="ruby">  data = JSON.parse(request.body.read)</code>
+            <code class="ruby">  db.close</code>
           </li>
         </div>
       
@@ -5903,7 +5903,7 @@
 
             
 
-            <code class="ruby">  json({</code>
+            <code class="ruby">  status 204</code>
           </li>
         </div>
       
@@ -5913,7 +5913,7 @@
 
             
 
-            <code class="ruby">         id: id.to_i,</code>
+            <code class="ruby">end</code>
           </li>
         </div>
       
@@ -5923,7 +5923,7 @@
 
             
 
-            <code class="ruby">         name: data[&#39;name&#39;],</code>
+            <code class="ruby"></code>
           </li>
         </div>
       
@@ -5933,7 +5933,7 @@
 
             
 
-            <code class="ruby">       })</code>
+            <code class="ruby"># ============================================</code>
           </li>
         </div>
       
@@ -5943,7 +5943,7 @@
 
             
 
-            <code class="ruby">end</code>
+            <code class="ruby"># TAG API ENDPOINTS</code>
           </li>
         </div>
       
@@ -5953,7 +5953,7 @@
 
             
 
-            <code class="ruby"></code>
+            <code class="ruby"># ============================================</code>
           </li>
         </div>
       
@@ -5963,12 +5963,266 @@
 
             
 
+            <code class="ruby"></code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="568">
+            
+
+            
+
+            <code class="ruby"># List all tags</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="covered" data-hits="1" data-linenumber="569">
+            
+              <span class="hits">1</span>
+            
+
+            
+
+            <code class="ruby">get &#39;/api/recipe/tags/&#39; do</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="missed" data-hits="0" data-linenumber="570">
+            
+
+            
+
+            <code class="ruby">  puts &#39;Route invoked: GET /api/recipe/tags/&#39;</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="571">
+            
+
+            
+
+            <code class="ruby"></code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="missed" data-hits="0" data-linenumber="572">
+            
+
+            
+
+            <code class="ruby">  db = db_connection</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="missed" data-hits="0" data-linenumber="573">
+            
+
+            
+
+            <code class="ruby">  tags = db_exec(db, &#39;SELECT id, name FROM tags&#39;)</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="missed" data-hits="0" data-linenumber="574">
+            
+
+            
+
+            <code class="ruby">  db.close</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="575">
+            
+
+            
+
+            <code class="ruby"></code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="missed" data-hits="0" data-linenumber="576">
+            
+
+            
+
+            <code class="ruby">  result = rows_to_hashes(tags)</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="missed" data-hits="0" data-linenumber="577">
+            
+
+            
+
+            <code class="ruby">  json(result)</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="578">
+            
+
+            
+
+            <code class="ruby">end</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="579">
+            
+
+            
+
+            <code class="ruby"></code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="580">
+            
+
+            
+
+            <code class="ruby"># Update a tag (full update)</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="covered" data-hits="1" data-linenumber="581">
+            
+              <span class="hits">1</span>
+            
+
+            
+
+            <code class="ruby">put &#39;/api/recipe/tags/:id/&#39; do</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="missed" data-hits="0" data-linenumber="582">
+            
+
+            
+
+            <code class="ruby">  puts &#39;Route invoked: PUT /api/recipe/tags/:id/&#39;</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="missed" data-hits="0" data-linenumber="583">
+            
+
+            
+
+            <code class="ruby">  id = params[:id]</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="missed" data-hits="0" data-linenumber="584">
+            
+
+            
+
+            <code class="ruby">  data = JSON.parse(request.body.read)</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="585">
+            
+
+            
+
+            <code class="ruby"></code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="missed" data-hits="0" data-linenumber="586">
+            
+
+            
+
+            <code class="ruby">  json({</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="587">
+            
+
+            
+
+            <code class="ruby">         id: id.to_i,</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="588">
+            
+
+            
+
+            <code class="ruby">         name: data[&#39;name&#39;],</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="589">
+            
+
+            
+
+            <code class="ruby">       })</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="590">
+            
+
+            
+
+            <code class="ruby">end</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="591">
+            
+
+            
+
+            <code class="ruby"></code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="592">
+            
+
+            
+
             <code class="ruby"># Partial update a tag</code>
           </li>
         </div>
       
         <div>
-          <li class="covered" data-hits="1" data-linenumber="568">
+          <li class="covered" data-hits="1" data-linenumber="593">
             
               <span class="hits">1</span>
             
@@ -5980,7 +6234,7 @@
         </div>
       
         <div>
-          <li class="missed" data-hits="0" data-linenumber="569">
+          <li class="missed" data-hits="0" data-linenumber="594">
             
 
             
@@ -5990,7 +6244,7 @@
         </div>
       
         <div>
-          <li class="missed" data-hits="0" data-linenumber="570">
+          <li class="missed" data-hits="0" data-linenumber="595">
             
 
             
@@ -6000,7 +6254,7 @@
         </div>
       
         <div>
-          <li class="missed" data-hits="0" data-linenumber="571">
+          <li class="missed" data-hits="0" data-linenumber="596">
             
 
             
@@ -6010,7 +6264,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="572">
+          <li class="never" data-hits="" data-linenumber="597">
             
 
             
@@ -6020,7 +6274,7 @@
         </div>
       
         <div>
-          <li class="missed" data-hits="0" data-linenumber="573">
+          <li class="missed" data-hits="0" data-linenumber="598">
             
 
             
@@ -6030,7 +6284,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="574">
+          <li class="never" data-hits="" data-linenumber="599">
             
 
             
@@ -6040,7 +6294,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="575">
+          <li class="never" data-hits="" data-linenumber="600">
             
 
             
@@ -6050,7 +6304,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="576">
+          <li class="never" data-hits="" data-linenumber="601">
             
 
             
@@ -6060,7 +6314,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="577">
+          <li class="never" data-hits="" data-linenumber="602">
             
 
             
@@ -6070,7 +6324,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="578">
+          <li class="never" data-hits="" data-linenumber="603">
             
 
             
@@ -6080,7 +6334,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="579">
+          <li class="never" data-hits="" data-linenumber="604">
             
 
             
@@ -6090,7 +6344,7 @@
         </div>
       
         <div>
-          <li class="covered" data-hits="1" data-linenumber="580">
+          <li class="covered" data-hits="1" data-linenumber="605">
             
               <span class="hits">1</span>
             
@@ -6102,7 +6356,7 @@
         </div>
       
         <div>
-          <li class="missed" data-hits="0" data-linenumber="581">
+          <li class="missed" data-hits="0" data-linenumber="606">
             
 
             
@@ -6112,7 +6366,7 @@
         </div>
       
         <div>
-          <li class="missed" data-hits="0" data-linenumber="582">
+          <li class="missed" data-hits="0" data-linenumber="607">
             
 
             
@@ -6122,7 +6376,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="583">
+          <li class="never" data-hits="" data-linenumber="608">
             
 
             
@@ -6132,27 +6386,27 @@
         </div>
       
         <div>
-          <li class="missed" data-hits="0" data-linenumber="584">
+          <li class="missed" data-hits="0" data-linenumber="609">
             
 
             
 
-            <code class="ruby">  db = get_db_connection</code>
+            <code class="ruby">  db = db_connection</code>
           </li>
         </div>
       
         <div>
-          <li class="missed" data-hits="0" data-linenumber="585">
+          <li class="missed" data-hits="0" data-linenumber="610">
             
 
             
 
-            <code class="ruby">  db.execute(&#39;DELETE FROM tags WHERE id = ?&#39;, id)</code>
+            <code class="ruby">  db_exec(db, &#39;DELETE FROM tags WHERE id = $1&#39;, [id])</code>
           </li>
         </div>
       
         <div>
-          <li class="missed" data-hits="0" data-linenumber="586">
+          <li class="missed" data-hits="0" data-linenumber="611">
             
 
             
@@ -6162,7 +6416,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="587">
+          <li class="never" data-hits="" data-linenumber="612">
             
 
             
@@ -6172,7 +6426,7 @@
         </div>
       
         <div>
-          <li class="missed" data-hits="0" data-linenumber="588">
+          <li class="missed" data-hits="0" data-linenumber="613">
             
 
             
@@ -6182,7 +6436,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="589">
+          <li class="never" data-hits="" data-linenumber="614">
             
 
             
@@ -6192,7 +6446,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="590">
+          <li class="never" data-hits="" data-linenumber="615">
             
 
             
@@ -6202,7 +6456,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="591">
+          <li class="never" data-hits="" data-linenumber="616">
             
 
             
@@ -6212,7 +6466,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="592">
+          <li class="never" data-hits="" data-linenumber="617">
             
 
             
@@ -6222,7 +6476,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="593">
+          <li class="never" data-hits="" data-linenumber="618">
             
 
             
@@ -6232,7 +6486,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="594">
+          <li class="never" data-hits="" data-linenumber="619">
             
 
             
@@ -6242,7 +6496,89 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="595">
+          <li class="never" data-hits="" data-linenumber="620">
+            
+
+            
+
+            <code class="ruby"># Log details for 404s to help debug missing routes</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="covered" data-hits="1" data-linenumber="621">
+            
+              <span class="hits">1</span>
+            
+
+            
+
+            <code class="ruby">not_found do</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="missed" data-hits="0" data-linenumber="622">
+            
+
+            
+
+            <code class="ruby">  puts &quot;NotFound handler triggered for path: #{request.path_info}&quot;</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="missed" data-hits="0" data-linenumber="623">
+            
+
+            
+
+            <code class="ruby">  puts &quot;Request env keys: #{request.env.keys.grep(/REQUEST|PATH|HTTP/).join(&#39;, &#39;)}&quot;</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="missed" data-hits="0" data-linenumber="624">
+            
+
+            
+
+            <code class="ruby">  content_type &#39;text/html&#39;</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="missed" data-hits="0" data-linenumber="625">
+            
+
+            
+
+            <code class="ruby">  &#39;&lt;h1&gt;Not Found&lt;/h1&gt;&#39;</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="626">
+            
+
+            
+
+            <code class="ruby">end</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="627">
+            
+
+            
+
+            <code class="ruby"></code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="628">
             
 
             
@@ -6252,7 +6588,7 @@
         </div>
       
         <div>
-          <li class="covered" data-hits="1" data-linenumber="596">
+          <li class="covered" data-hits="1" data-linenumber="629">
             
               <span class="hits">1</span>
             
@@ -6264,7 +6600,7 @@
         </div>
       
         <div>
-          <li class="covered" data-hits="1" data-linenumber="597">
+          <li class="covered" data-hits="1" data-linenumber="630">
             
               <span class="hits">1</span>
             
@@ -6276,7 +6612,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="598">
+          <li class="never" data-hits="" data-linenumber="631">
             
 
             

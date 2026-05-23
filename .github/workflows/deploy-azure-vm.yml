@@ -66,6 +66,14 @@ jobs:
             mkdir -p ~/app
             mkdir -p ~/app/infrastructure/nginx
             mv ~/app/docker-compose.prod.yaml ~/app/docker-compose.yaml
+            cat > ~/app/.env << 'ENVFILE'
+            DB_HOST=${{ secrets.DB_HOST }}
+            DB_PORT=${{ secrets.DB_PORT }}
+            DB_NAME=${{ secrets.DB_NAME }}
+            DB_USER=${{ secrets.DB_USER }}
+            DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+            DB_SSLMODE=${{ secrets.DB_SSLMODE }}
+            ENVFILE
             if ! command -v docker >/dev/null 2>&1; then
               echo "Docker not found. Installing..."
               sudo apt-get update -y
@@ -79,5 +87,7 @@ jobs:
             echo "${{ secrets.GHCR_PAT }}" | sudo docker login ghcr.io -u "${{ github.repository_owner }}" --password-stdin
             cd ~/app
             sudo docker compose pull
-            sudo docker compose up -d
+            sudo docker compose up -d --wait --wait-timeout 180
+            sudo docker compose restart nginx
+            sudo docker compose ps
             sudo docker image prune -f

@@ -52,3 +52,25 @@ p {
 center {
     display: block;
 }
+
+.swagger-link {
+    display: inline-block;
+}
+
+.swagger-button {
+    display: inline-block;
+    background: #ff0066;
+    color: #ffffff;
+    border: 3px solid #000000;
+    padding: 12px 22px;
+    font-family: Arial, sans-serif;
+    font-size: 18px;
+    font-weight: bold;
+    text-shadow: none;
+    box-shadow: 4px 4px 0 #000000;
+}
+
+.swagger-link:hover .swagger-button {
+    background: #ff3399;
+    text-decoration: none;
+}

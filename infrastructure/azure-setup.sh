@@ -1,3 +1,4 @@
+
 #!/bin/bash
 
 # Enhanced Azure VM Setup Script for CI/CD Demo
@@ -5,7 +6,20 @@
 # and ensures VM is updated/upgraded after creation
 # Also sets the VM IP address in GitHub secrets
 
+
 set -e  # Exit on any error
+
+# Logging setup
+LOG_FILE="$(dirname "$0")/setup.log"
+echo "--- Azure setup started at $(date) ---" > "$LOG_FILE"
+exec > >(tee -a "$LOG_FILE") 2>&1
+
+pause_on_exit() {
+    echo "--- Azure setup ended at $(date) ---" | tee -a "$LOG_FILE"
+    read -p "Press Enter to close this script..." -r
+}
+
+trap 'pause_on_exit' ERR
 
 # Parse command line arguments
 NO_COLORS=false
@@ -29,6 +43,11 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
+# Avoid Git Bash path mangling of Azure resource IDs
+if [[ -n "$MSYSTEM" ]]; then
+    export MSYS2_ARG_CONV_EXCL="*"
+fi
+
 # Configuration variables - CUSTOMIZE THESE
 RESOURCE_GROUP="recipe-cookbook-rg"
 LOCATION="francecentral"  # Change to your preferred region (e.g., "eastus", "northeurope")
@@ -36,6 +55,16 @@ VM_NAME="recipe-cookbook-vm"
 VM_SIZE="Standard_B1s"  # Change to "Standard_B2s" for better performance
 ADMIN_USERNAME="azureuser"
 SSH_KEY_PATH="$HOME/.ssh/id_rsa.pub"   # Change this path to point at your public key - (your private key should be in the same folder, and should be set in SSH_PRIVATE_KEY on GitHub)
+SSH_PRIVATE_KEY_PATH="${SSH_KEY_PATH%.pub}"
+APP_PUBLIC_IP_NAME="recipe-cookbook-public-ip"
+
+# Database VM configuration
+DB_VM_NAME="recipe-cookbook-db-vm"
+DB_VM_SIZE="Standard_B1s"
+DB_NAME="recipe_cookbook"
+DB_USER="recipe_user"
+DB_PASSWORD="recipe_pass"
+
 
 # Disable all color output
 GREEN=''
@@ -74,11 +103,19 @@ fi
 echo ""
 if [ ! -f "$SSH_KEY_PATH" ]; then
     echo -e "${YELLOW}⚠️  SSH key not found at $SSH_KEY_PATH${NC}"
-    echo "Generating new SSH key..."
-    ssh-keygen -t rsa -b 4096 -f "${SSH_KEY_PATH%.pub}" -N "" -C "azure-vm-cicd"
+    echo "Generating new RSA SSH key..."
+    ssh-keygen -t rsa -b 4096 -f "$SSH_PRIVATE_KEY_PATH" -N "" -C "azure-vm-cicd"
     echo -e "${GREEN}✅ SSH key generated${NC}"
 else
-    echo -e "${GREEN}✅ SSH key found at $SSH_KEY_PATH${NC}"
+    if grep -q '^ssh-rsa ' "$SSH_KEY_PATH"; then
+        echo -e "${GREEN}✅ SSH key found at $SSH_KEY_PATH${NC}"
+    else
+        echo -e "${YELLOW}⚠️  SSH key is not RSA. Generating a dedicated RSA key for Azure...${NC}"
+        SSH_KEY_PATH="$HOME/.ssh/id_rsa_azure.pub"
+        SSH_PRIVATE_KEY_PATH="${SSH_KEY_PATH%.pub}"
+        ssh-keygen -t rsa -b 4096 -f "$SSH_PRIVATE_KEY_PATH" -N "" -C "azure-vm-cicd"
+        echo -e "${GREEN}✅ RSA SSH key generated at $SSH_KEY_PATH${NC}"
+    fi
 fi
 
 # Create resource group
@@ -89,27 +126,15 @@ echo "=========================================="
 echo "Name: $RESOURCE_GROUP"
 echo "Location: $LOCATION"
 
+
 if az group exists --name "$RESOURCE_GROUP" | grep -q "true"; then
-    echo -e "${YELLOW}⚠️  Resource group already exists${NC}"
-    read -p "Do you want to delete and recreate it? (y/N): " -n 1 -r
-    echo
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
-        echo "Deleting existing resource group..."
-        az group delete --name "$RESOURCE_GROUP" --yes --no-wait
-        echo "Waiting for deletion to complete..."
-        DELETE_TIMEOUT_SEC=600
-        DELETE_START_TIME=$SECONDS
-        while az group exists --name "$RESOURCE_GROUP" | grep -q "true"; do
-            if [ $((SECONDS - DELETE_START_TIME)) -ge $DELETE_TIMEOUT_SEC ]; then
-                echo -e "${RED}❌ Timed out waiting for resource group deletion after ${DELETE_TIMEOUT_SEC}s.${NC}"
-                echo "Try again later, or delete manually with: az group delete --name \"$RESOURCE_GROUP\" --yes"
-                exit 1
-            fi
-            sleep 10
-        done
-    else
-        echo "Using existing resource group"
-    fi
+    echo -e "${YELLOW}⚠️  Resource group already exists. Using existing resource group.${NC}"
+else
+    az group create \
+        --name "$RESOURCE_GROUP" \
+        --location "$LOCATION" \
+        --output table
+    echo -e "${GREEN}✅ Resource group created${NC}"
 fi
 
 if ! az group exists --name "$RESOURCE_GROUP" | grep -q "true"; then
@@ -118,6 +143,24 @@ if ! az group exists --name "$RESOURCE_GROUP" | grep -q "true"; then
         --location "$LOCATION" \
         --output table
     echo -e "${GREEN}✅ Resource group created${NC}"
+fi
+
+# Create or reuse a static public IP for the app VM
+echo ""
+echo "=========================================="
+echo "Ensuring Static Public IP for App VM"
+echo "=========================================="
+
+if az network public-ip show --resource-group "$RESOURCE_GROUP" --name "$APP_PUBLIC_IP_NAME" &> /dev/null; then
+    echo -e "${YELLOW}⚠️  Public IP $APP_PUBLIC_IP_NAME already exists. Reusing.${NC}"
+else
+    az network public-ip create \
+        --resource-group "$RESOURCE_GROUP" \
+        --name "$APP_PUBLIC_IP_NAME" \
+        --sku Standard \
+        --allocation-method Static \
+        --output table
+    echo -e "${GREEN}✅ Public IP created${NC}"
 fi
 
 # Create Virtual Machine
@@ -151,8 +194,8 @@ for SIZE in "${VM_SIZE_CANDIDATES[@]}"; do
         --image "Canonical:0001-com-ubuntu-server-jammy:22_04-lts:latest" \
         --size "$SIZE" \
         --admin-username "$ADMIN_USERNAME" \
-        --ssh-key-values "$SSH_KEY_PATH" \
-        --public-ip-sku Standard \
+        --ssh-key-values "$(cat "$SSH_KEY_PATH")" \
+        --public-ip-address "$APP_PUBLIC_IP_NAME" \
         --output table 2>&1)
     VM_CREATE_EXIT_CODE=$?
     set -e
@@ -175,11 +218,27 @@ for SIZE in "${VM_SIZE_CANDIDATES[@]}"; do
     exit 1
 done
 
+
 if [ "$VM_CREATED" != true ]; then
     echo -e "${RED}❌ Unable to create VM: no candidate sizes are currently available in $LOCATION.${NC}"
     echo "Tip: Change LOCATION in this script or add additional VM sizes to VM_SIZE_CANDIDATES."
     exit 1
 fi
+
+# Wait for VM resource to be available (Azure eventual consistency)
+VM_WAIT_TIMEOUT=180 # seconds
+VM_WAIT_INTERVAL=5
+VM_WAIT_ELAPSED=0
+echo "Waiting for VM resource to become available..."
+while ! az vm show --resource-group "$RESOURCE_GROUP" --name "$VM_NAME" &> /dev/null; do
+    sleep $VM_WAIT_INTERVAL
+    VM_WAIT_ELAPSED=$((VM_WAIT_ELAPSED + VM_WAIT_INTERVAL))
+    if [ $VM_WAIT_ELAPSED -ge $VM_WAIT_TIMEOUT ]; then
+        echo -e "${RED}❌ Timed out waiting for VM resource to become available in Azure.${NC}"
+        exit 1
+    fi
+done
+echo -e "${GREEN}✅ VM resource is now available in Azure${NC}"
 
 # Open required ports
 echo ""
@@ -210,6 +269,140 @@ az vm open-port \
     --output table
 
 echo -e "${GREEN}✅ Ports configured${NC}"
+
+# Get app VM private IP for DB access rules
+APP_PRIVATE_IP=$(az vm show \
+    --resource-group "$RESOURCE_GROUP" \
+    --name "$VM_NAME" \
+    --show-details \
+    --query privateIps \
+    --output tsv)
+
+APP_NIC_ID=$(az vm show \
+    --resource-group "$RESOURCE_GROUP" \
+    --name "$VM_NAME" \
+    --query "networkProfile.networkInterfaces[0].id" \
+    --output tsv)
+
+APP_NIC_NAME=$(az network nic show \
+    --ids "$APP_NIC_ID" \
+    --query name \
+    --output tsv)
+
+APP_IPCONFIG_NAME=$(az network nic show \
+    --ids "$APP_NIC_ID" \
+    --query "ipConfigurations[0].name" \
+    --output tsv)
+
+az network nic ip-config update \
+    --resource-group "$RESOURCE_GROUP" \
+    --nic-name "$APP_NIC_NAME" \
+    --name "$APP_IPCONFIG_NAME" \
+    --private-ip-address "$APP_PRIVATE_IP" \
+    --output table
+
+# Create Database Virtual Machine
+echo ""
+echo "=========================================="
+echo "Creating Database Virtual Machine"
+echo "=========================================="
+echo "DB VM Name: $DB_VM_NAME"
+echo "Size: $DB_VM_SIZE"
+echo "Admin User: $ADMIN_USERNAME"
+
+APP_SUBNET_ID=$(az network nic show \
+    --ids "$APP_NIC_ID" \
+    --query "ipConfigurations[0].subnet.id" \
+    --output tsv)
+
+VNET_NAME=$(echo "$APP_SUBNET_ID" | awk -F/ '{print $(NF-2)}')
+SUBNET_NAME=$(echo "$APP_SUBNET_ID" | awk -F/ '{print $NF}')
+
+if az vm show --resource-group "$RESOURCE_GROUP" --name "$DB_VM_NAME" &> /dev/null; then
+    echo -e "${YELLOW}⚠️  DB VM already exists. Skipping creation.${NC}"
+else
+    az vm create \
+        --resource-group "$RESOURCE_GROUP" \
+        --name "$DB_VM_NAME" \
+        --image "Canonical:0001-com-ubuntu-server-jammy:22_04-lts:latest" \
+        --size "$DB_VM_SIZE" \
+        --admin-username "$ADMIN_USERNAME" \
+        --ssh-key-values "$(cat "$SSH_KEY_PATH")" \
+        --public-ip-sku Standard \
+        --vnet-name "$VNET_NAME" \
+        --subnet "$SUBNET_NAME" \
+        --output table
+
+    echo -e "${GREEN}✅ Database virtual machine created${NC}"
+fi
+
+# Open SSH port for DB VM
+az vm open-port \
+    --resource-group "$RESOURCE_GROUP" \
+    --name "$DB_VM_NAME" \
+    --port 22 \
+    --priority 320 \
+    --output table
+
+# Allow Postgres only from the app VM private IP
+DB_NIC_ID=$(az vm show \
+    --resource-group "$RESOURCE_GROUP" \
+    --name "$DB_VM_NAME" \
+    --query "networkProfile.networkInterfaces[0].id" \
+    --output tsv)
+
+DB_NSG_ID=$(az network nic show \
+    --ids "$DB_NIC_ID" \
+    --query "networkSecurityGroup.id" \
+    --output tsv)
+
+DB_NSG_NAME=$(az network nsg show \
+    --ids "$DB_NSG_ID" \
+    --query "name" \
+    --output tsv)
+
+az network nsg rule create \
+    --resource-group "$RESOURCE_GROUP" \
+    --nsg-name "$DB_NSG_NAME" \
+    --name AllowPostgresFromApp \
+    --priority 330 \
+    --direction Inbound \
+    --access Allow \
+    --protocol Tcp \
+    --source-address-prefixes "$APP_PRIVATE_IP" \
+    --destination-port-ranges 5432 \
+    --output table
+
+DB_PRIVATE_IP=$(az vm show \
+    --resource-group "$RESOURCE_GROUP" \
+    --name "$DB_VM_NAME" \
+    --show-details \
+    --query privateIps \
+    --output tsv)
+
+DB_NIC_NAME=$(az network nic show \
+    --ids "$DB_NIC_ID" \
+    --query name \
+    --output tsv)
+
+DB_IPCONFIG_NAME=$(az network nic show \
+    --ids "$DB_NIC_ID" \
+    --query "ipConfigurations[0].name" \
+    --output tsv)
+
+az network nic ip-config update \
+    --resource-group "$RESOURCE_GROUP" \
+    --nic-name "$DB_NIC_NAME" \
+    --name "$DB_IPCONFIG_NAME" \
+    --private-ip-address "$DB_PRIVATE_IP" \
+    --output table
+
+DB_PUBLIC_IP=$(az vm show \
+    --resource-group "$RESOURCE_GROUP" \
+    --name "$DB_VM_NAME" \
+    --show-details \
+    --query publicIps \
+    --output tsv)
 
 # Get VM public IP
 echo ""
@@ -315,6 +508,60 @@ ENDSSH
     echo -e "${YELLOW}⚠️  Note: You need to logout and login again for docker group changes to take effect${NC}"
 fi
 
+# Install PostgreSQL on the DB VM
+echo ""
+read -p "Do you want to install PostgreSQL on the DB VM now? (Y/n): " -n 1 -r
+echo
+if [[ ! $REPLY =~ ^[Nn]$ ]]; then
+    echo ""
+    echo "=========================================="
+    echo "Installing PostgreSQL on DB VM"
+    echo "=========================================="
+
+    ssh -o StrictHostKeyChecking=no "$ADMIN_USERNAME@$DB_PUBLIC_IP" << ENDSSH
+        set -e
+        echo "Updating package index..."
+        sudo apt update
+
+        echo "Installing PostgreSQL..."
+        sudo apt install -y postgresql postgresql-contrib
+
+        echo "Configuring PostgreSQL for remote access..."
+        sudo sed -i "s/^#listen_addresses =.*/listen_addresses = '*'/" /etc/postgresql/*/main/postgresql.conf
+
+        echo "Allowing app VM to connect..."
+        echo "host    all             all             ${APP_PRIVATE_IP}/32            md5" | sudo tee -a /etc/postgresql/*/main/pg_hba.conf > /dev/null
+
+        echo "Restarting PostgreSQL..."
+        sudo systemctl restart postgresql
+
+        echo "Creating database and user..."
+        sudo -u postgres psql -v ON_ERROR_STOP=1 << SQL
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = '${DB_USER}') THEN
+        CREATE ROLE ${DB_USER} LOGIN PASSWORD '${DB_PASSWORD}';
+    END IF;
+END
+$$;
+
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT FROM pg_database WHERE datname = '${DB_NAME}') THEN
+        CREATE DATABASE ${DB_NAME};
+    END IF;
+END
+$$;
+
+GRANT ALL PRIVILEGES ON DATABASE ${DB_NAME} TO ${DB_USER};
+SQL
+
+        echo "PostgreSQL installation complete."
+ENDSSH
+
+    echo -e "${GREEN}✅ PostgreSQL installed and configured${NC}"
+fi
+
 # Set VM IP in GitHub secrets
 echo ""
 echo "=========================================="
@@ -341,6 +588,11 @@ if ! command -v gh &> /dev/null; then
     echo "   SSH_USER = $ADMIN_USERNAME"
     echo "   SSH_HOST = $VM_IP"
     echo "   SSH_PRIVATE_KEY = Contents of ~/.ssh/id_rsa"
+    echo "   DB_HOST = $DB_PRIVATE_IP" 
+    echo "   DB_PORT = 5432" 
+    echo "   DB_NAME = $DB_NAME" 
+    echo "   DB_USER = $DB_USER" 
+    echo "   DB_PASSWORD = $DB_PASSWORD" 
     echo ""
     echo "3. Or install GitHub CLI and run this script from your repository directory"
 else
@@ -360,7 +612,14 @@ else
     echo "$VM_IP" | gh secret set SSH_HOST
     
     # Set SSH_PRIVATE_KEY secret
-    gh secret set SSH_PRIVATE_KEY < "${SSH_KEY_PATH%.pub}"
+    gh secret set SSH_PRIVATE_KEY < "$SSH_PRIVATE_KEY_PATH"
+
+    # Set DB connection secrets
+    echo "$DB_PRIVATE_IP" | gh secret set DB_HOST
+    echo "5432" | gh secret set DB_PORT
+    echo "$DB_NAME" | gh secret set DB_NAME
+    echo "$DB_USER" | gh secret set DB_USER
+    echo "$DB_PASSWORD" | gh secret set DB_PASSWORD
     
     echo -e "${GREEN}✅ GitHub secrets set successfully${NC}"
 fi
@@ -375,6 +634,9 @@ echo "Resource Group: ${GREEN}$RESOURCE_GROUP${NC}"
 echo "VM Name: ${GREEN}$VM_NAME${NC}"
 echo "VM Public IP: ${GREEN}$VM_IP${NC}"
 echo "Admin Username: ${GREEN}$ADMIN_USERNAME${NC}"
+echo "DB VM Name: ${GREEN}$DB_VM_NAME${NC}"
+echo "DB VM Public IP: ${GREEN}$DB_PUBLIC_IP${NC}"
+echo "DB VM Private IP: ${GREEN}$DB_PRIVATE_IP${NC}"
 echo ""
 echo "=========================================="
 echo "Next Steps:"
@@ -391,9 +653,16 @@ echo "3. GitHub secrets have been set automatically:"
 echo "   ${YELLOW}SSH_USER${NC} = $ADMIN_USERNAME"
 echo "   ${YELLOW}SSH_HOST${NC} = $VM_IP"
 echo "   ${YELLOW}SSH_PRIVATE_KEY${NC} = Your SSH private key"
+echo "   ${YELLOW}DB_HOST${NC} = $DB_PRIVATE_IP" 
+echo "   ${YELLOW}DB_PORT${NC} = 5432" 
+echo "   ${YELLOW}DB_NAME${NC} = $DB_NAME" 
+echo "   ${YELLOW}DB_USER${NC} = $DB_USER" 
+echo "   ${YELLOW}DB_PASSWORD${NC} = $DB_PASSWORD" 
 echo ""
 echo "=========================================="
 echo ""
 echo "To delete everything later, run:"
 echo "   ${RED}./azure-teardown.sh${NC}"
 echo ""
+
+pause_on_exit
