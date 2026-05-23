@@ -132,7 +132,6 @@ end
 # WEB ROUTES (HTML pages)
 # ============================================
 
-
 # Enhanced error logging for debugging
 error do
   e = env['sinatra.error']
