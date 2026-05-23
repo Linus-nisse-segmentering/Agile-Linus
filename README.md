@@ -12,7 +12,7 @@ A recipe cookbook web application built with Ruby and the Sinatra framework, fea
 - Browse recipes with ingredients and tags
 - View detailed recipe instructions
 - RESTful API for recipes, ingredients, tags, and users
-- SQLite database with full schema and seed data
+- PostgreSQL database with full schema and seed data
 - Retro 90s web design aesthetic
 
 ## Prerequisites
@@ -75,9 +75,11 @@ Grafana uses `admin` as the default password unless you set `GRAFANA_ADMIN_PASSW
 ├── config.ru           # Rack configuration
 ├── Gemfile             # Ruby dependencies
 ├── db/
-│   ├── schema.sql      # Database schema
+│   ├── schema.sql      # SQLite schema (legacy)
+│   ├── schema.pg.sql   # PostgreSQL schema
 │   ├── seeds.sql       # Seed data
-│   └── setup.rb        # Database setup script
+│   ├── setup.rb        # SQLite setup script (legacy)
+│   └── migrate_sqlite_to_postgres.rb # One-time migration script
 ├── views/
 │   ├── layout.erb      # Base layout template
 │   ├── home.erb        # Home page template
@@ -133,7 +135,7 @@ Grafana uses `admin` as the default password unless you set `GRAFANA_ADMIN_PASSW
 
 ## Database Schema
 
-The application uses SQLite3 with the following tables:
+The application uses PostgreSQL with the following tables:
 - `users` - User accounts
 - `recipes` - Recipe information
 - `ingredients` - Ingredient master list
@@ -148,6 +150,35 @@ The database is automatically set up when the Docker container starts. If you ne
 docker compose down
 docker compose up --build
 ```
+
+## Database Configuration
+
+The app uses PostgreSQL. These environment variables configure the connection:
+
+- `DB_HOST` (default: `localhost`)
+- `DB_PORT` (default: `5432`)
+- `DB_NAME` (default: `recipe_cookbook`)
+- `DB_USER` (default: `recipe_user`)
+- `DB_PASSWORD` (default: `recipe_pass`)
+- `DB_SSLMODE` (default: `prefer`)
+
+Set `DB_INIT=true` to create the schema and seed the database on startup. Use it once for new databases and then remove it for shared environments.
+
+## Migrating from SQLite to PostgreSQL
+
+If you have existing SQLite data in `app.db`, migrate it into PostgreSQL with:
+
+```bash
+DB_HOST=localhost \
+DB_PORT=5432 \
+DB_NAME=recipe_cookbook \
+DB_USER=recipe_user \
+DB_PASSWORD=recipe_pass \
+SQLITE_PATH=./app.db \
+ruby db/migrate_sqlite_to_postgres.rb
+```
+
+If the Postgres database already contains data, set `PG_CLEAR=true` to truncate tables before migrating.
 
 ## Quality and Testing
 
