@@ -8,6 +8,8 @@ services:
       - POSTGRES_PASSWORD=recipe_pass
     volumes:
       - recipe_db_data_v2:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U recipe_user -d recipe_cookbook"]

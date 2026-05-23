@@ -8,7 +8,7 @@
 			"args": [
 				"-NoProfile",
 				"-Command",
-				"Set-Location 'c:\\Users\\Sahra\\OneDrive\\Vedhæftede filer\\Desktop\\IT-Arkitektur, Cloud, DevOps\\opgave 1 sem4\\Agile-Linus'; docker compose -f 'docker-compose.yaml' up -d; docker compose -f 'monitoring\\docker-compose.yml' up -d"
+				   "docker compose -f 'docker-compose.yaml' up -d; docker compose -f 'monitoring\\docker-compose.yml' up -d"
 			],
 			"isBackground": false,
 			"group": "build"
