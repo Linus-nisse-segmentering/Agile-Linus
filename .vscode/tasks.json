@@ -8,8 +8,11 @@
 			"args": [
 				"-NoProfile",
 				"-Command",
-				"Set-Location 'c:\\Users\\Sahra\\OneDrive\\Vedhæftede filer\\Desktop\\IT-Arkitektur, Cloud, DevOps\\opgave 1 sem4\\Agile-Linus'; docker compose -f 'docker-compose.yaml' up -d; docker compose -f 'monitoring\\docker-compose.yml' up -d"
+				"docker compose -f 'docker-compose.yaml' up -d; docker compose -f 'monitoring\\docker-compose.yml' up -d"
 			],
+			"options": {
+				"cwd": "c:\\Users\\Sahra\\OneDrive\\Vedhæftede filer\\Desktop\\IT-Arkitektur, Cloud, DevOps\\opgave 1 sem4\\Agile-Linus"
+			},
 			"isBackground": false,
 			"group": "build"
 		},
@@ -20,8 +23,11 @@
 			"args": [
 				"-NoProfile",
 				"-Command",
-				"Set-Location 'c:\\Users\\Sahra\\OneDrive\\Vedhæftede filer\\Desktop\\IT-Arkitektur, Cloud, DevOps\\opgave 1 sem4\\Agile-Linus'; docker compose -f 'docker-compose.yaml' build --no-cache app; docker compose -f 'docker-compose.yaml' up -d --force-recreate app nginx"
+				"docker compose -f 'docker-compose.yaml' build --no-cache app; docker compose -f 'docker-compose.yaml' up -d --force-recreate app nginx"
 			],
+			"options": {
+				"cwd": "c:\\Users\\Sahra\\OneDrive\\Vedhæftede filer\\Desktop\\IT-Arkitektur, Cloud, DevOps\\opgave 1 sem4\\Agile-Linus"
+			},
 			"isBackground": false,
 			"group": "build"
 		}
