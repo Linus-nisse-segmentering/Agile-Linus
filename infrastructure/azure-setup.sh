@@ -55,6 +55,16 @@ SSH_KEY_PATH="$HOME/.ssh/id_rsa.pub"   # Change this path to point at your publi
 SSH_PRIVATE_KEY_PATH="${SSH_KEY_PATH%.pub}"
 APP_PUBLIC_IP_NAME="recipe-cookbook-public-ip"
 
+# Backend (private) VM settings
+BACKEND_VM_NAME="recipe-cookbook-backend-vm"
+BACKEND_NIC_NAME="${BACKEND_VM_NAME}-nic"
+BACKEND_NSG_NAME="${BACKEND_VM_NAME}-nsg"
+BACKEND_VM_SIZE="Standard_B1s"
+
+# Private DNS (internal name for backend)
+PRIVATE_DNS_ZONE_NAME="backend.internal"
+PRIVATE_DNS_RECORD_NAME="backend"
+
 # Database VM configuration
 DB_VM_NAME="recipe-cookbook-db-vm"
 DB_VM_SIZE="Standard_B1s"
@@ -312,6 +322,74 @@ az network nic ip-config update \
     --private-ip-address "$APP_PRIVATE_IP" \
     --output table
 
+# Derive VNet and Subnet names from the app NIC so we can reuse the same subnet for backend NIC
+APP_SUBNET_ID=$(az network nic show \
+    --ids "$APP_NIC_ID" \
+    --query "ipConfigurations[0].subnet.id" \
+    --output tsv)
+
+VNET_NAME=$(echo "$APP_SUBNET_ID" | awk -F/ '{print $(NF-2)}')
+SUBNET_NAME=$(echo "$APP_SUBNET_ID" | awk -F/ '{print $NF}')
+
+# --- Create backend NIC and VM (private-only) ---
+echo ""
+echo "=========================================="
+echo "Creating Backend (private) VM and NIC"
+echo "=========================================="
+if az network nic show --resource-group "$RESOURCE_GROUP" --name "$BACKEND_NIC_NAME" &> /dev/null; then
+    echo -e "⚠️  Backend NIC $BACKEND_NIC_NAME already exists. Reusing.${NC}"
+else
+    az network nic create \
+        --resource-group "$RESOURCE_GROUP" \
+        --name "$BACKEND_NIC_NAME" \
+        --vnet-name "$VNET_NAME" \
+        --subnet "$SUBNET_NAME" \
+        --output table
+    echo -e "${GREEN}✅ Backend NIC created${NC}"
+fi
+
+BACKEND_NIC_ID=$(az network nic show --resource-group "$RESOURCE_GROUP" --name "$BACKEND_NIC_NAME" --query id -o tsv)
+
+if az vm show --resource-group "$RESOURCE_GROUP" --name "$BACKEND_VM_NAME" &> /dev/null; then
+    echo -e "${YELLOW}⚠️  Backend VM already exists. Skipping creation.${NC}"
+else
+    az vm create \
+        --resource-group "$RESOURCE_GROUP" \
+        --name "$BACKEND_VM_NAME" \
+        --nics "$BACKEND_NIC_ID" \
+        --image "Canonical:0001-com-ubuntu-server-jammy:22_04-lts:latest" \
+        --size "$BACKEND_VM_SIZE" \
+        --admin-username "$ADMIN_USERNAME" \
+        --ssh-key-values "$(cat "$SSH_KEY_PATH")" \
+        --public-ip-address "" \
+        --output table
+
+    echo -e "${GREEN}✅ Backend VM created (no public IP)${NC}"
+fi
+
+BACKEND_PRIVATE_IP=$(az network nic show --resource-group "$RESOURCE_GROUP" --name "$BACKEND_NIC_NAME" --query "ipConfigurations[0].privateIpAddress" -o tsv)
+echo "Backend private IP: $BACKEND_PRIVATE_IP"
+
+# Create Private DNS zone and link to VNet, add A record for backend
+if az network private-dns zone show --resource-group "$RESOURCE_GROUP" --name "$PRIVATE_DNS_ZONE_NAME" &> /dev/null; then
+    echo -e "${YELLOW}⚠️  Private DNS zone $PRIVATE_DNS_ZONE_NAME exists. Reusing.${NC}"
+else
+    az network private-dns zone create --resource-group "$RESOURCE_GROUP" --name "$PRIVATE_DNS_ZONE_NAME"
+    echo -e "${GREEN}✅ Private DNS zone created: $PRIVATE_DNS_ZONE_NAME${NC}"
+fi
+
+# Link zone to VNet
+if az network private-dns link vnet show --resource-group "$RESOURCE_GROUP" --zone-name "$PRIVATE_DNS_ZONE_NAME" --name "link-$VNET_NAME" &> /dev/null; then
+    echo -e "${YELLOW}⚠️  Private DNS zone already linked to VNet.${NC}"
+else
+    az network private-dns link vnet create --resource-group "$RESOURCE_GROUP" --zone-name "$PRIVATE_DNS_ZONE_NAME" --name "link-$VNET_NAME" --virtual-network "/subscriptions/$(az account show --query id -o tsv)/resourceGroups/$RESOURCE_GROUP/providers/Microsoft.Network/virtualNetworks/$VNET_NAME" --registration-enabled false
+    echo -e "${GREEN}✅ Private DNS zone linked to VNet${NC}"
+fi
+
+# Create A record for backend
+az network private-dns record-set a create --resource-group "$RESOURCE_GROUP" --zone-name "$PRIVATE_DNS_ZONE_NAME" --name "$PRIVATE_DNS_RECORD_NAME" --ttl 300 || true
+az network private-dns record-set a add-record --resource-group "$RESOURCE_GROUP" --zone-name "$PRIVATE_DNS_ZONE_NAME" --record-set-name "$PRIVATE_DNS_RECORD_NAME" --ipv4-address "$BACKEND_PRIVATE_IP" || true
+
 # Create Database Virtual Machine
 echo ""
 echo "=========================================="
@@ -380,7 +458,7 @@ az network nsg rule create \
     --direction Inbound \
     --access Allow \
     --protocol Tcp \
-    --source-address-prefixes "$APP_PRIVATE_IP" \
+    --source-address-prefixes "$BACKEND_PRIVATE_IP" \
     --destination-port-ranges 5432 \
     --output table
 
