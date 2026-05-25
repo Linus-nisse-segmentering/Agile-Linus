@@ -100,7 +100,7 @@ jobs:
             SSH_OPTS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ~/.ssh/deploy_key"
 
             BACKEND_USER=${{ secrets.SSH_USER }}
-            BACKEND_HOST=backend.backend.internal
+            BACKEND_HOST=${{ secrets.BACKEND_HOST }}
 
             # Relay backend files to backend VM
             scp $SSH_OPTS ~/app/docker-compose.backend.yaml ${BACKEND_USER}@${BACKEND_HOST}:~/app/docker-compose.yaml || true
