@@ -42,13 +42,16 @@ jobs:
         with:
           context: .
           push: true
+          load: true
           tags: |
             ${{ env.IMAGE_NAME }}:latest
             ${{ env.IMAGE_NAME }}:${{ github.sha }}
 
       - name: Save image tar for relay
         run: |
-          docker save ${IMAGE_NAME}:latest | gzip > image_latest.tar.gz
+          # ensure runner can pull the image (we logged into GHCR earlier)
+          docker pull ${{ env.IMAGE_NAME }}:latest || true
+          docker save ${{ env.IMAGE_NAME }}:latest | gzip > image_latest.tar.gz
 
       - name: Copy deploy artifacts to public VM
         uses: appleboy/scp-action@v0.1.7
@@ -81,6 +84,8 @@ jobs:
             set -a
             # shellcheck disable=SC1090
             . ~/app/.env || true
+            # Ensure BACKEND_PORT has a sensible default if secret not set
+            export BACKEND_PORT=${BACKEND_PORT:-1010}
             set +a
             if ! command -v envsubst >/dev/null 2>&1; then
               sudo apt-get update -y || true
