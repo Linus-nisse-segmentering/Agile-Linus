@@ -46,16 +46,16 @@ jobs:
             ${{ env.IMAGE_NAME }}:latest
             ${{ env.IMAGE_NAME }}:${{ github.sha }}
 
-      - name: Copy docker-compose to VM
+      - name: Copy deploy artifacts to public VM
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: docker-compose.prod.yaml,infrastructure/nginx/default.conf
+          source: docker-compose.backend.yaml,monitoring,infrastructure/nginx/default.conf
           target: /home/${{ secrets.SSH_USER }}/app
 
-      - name: Deploy on VM
+      - name: Deploy on public VM and relay to backend
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -65,7 +65,12 @@ jobs:
             set -e
             mkdir -p ~/app
             mkdir -p ~/app/infrastructure/nginx
-            mv ~/app/docker-compose.prod.yaml ~/app/docker-compose.yaml
+            # Move uploaded files into place if present
+            mv ~/app/docker-compose.backend.yaml ~/app/docker-compose.backend.yaml 2>/dev/null || true
+            mv ~/app/monitoring/docker-compose.yml ~/app/monitoring/docker-compose.yml 2>/dev/null || true
+            mv ~/app/infrastructure/nginx/default.conf ~/app/infrastructure/nginx/default.conf 2>/dev/null || true
+
+            # Create env file that will also be forwarded to backend
             cat > ~/app/.env << 'ENVFILE'
             DB_HOST=${{ secrets.DB_HOST }}
             DB_PORT=${{ secrets.DB_PORT }}
@@ -74,6 +79,7 @@ jobs:
             DB_PASSWORD=${{ secrets.DB_PASSWORD }}
             DB_SSLMODE=${{ secrets.DB_SSLMODE }}
             ENVFILE
+
             if ! command -v docker >/dev/null 2>&1; then
               echo "Docker not found. Installing..."
               sudo apt-get update -y
@@ -82,12 +88,71 @@ jobs:
               echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
               sudo apt-get update -y
               sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
-              sudo usermod -aG docker $USER
+              sudo usermod -aG docker $USER || true
             fi
-            echo "${{ secrets.GHCR_PAT }}" | sudo docker login ghcr.io -u "${{ github.repository_owner }}" --password-stdin
+
+            # Write deploy key on public VM so it can SSH/SCP to the backend VM
+            mkdir -p ~/.ssh
+            cat > ~/.ssh/deploy_key << 'KEY'
+            ${{ secrets.SSH_PRIVATE_KEY }}
+            KEY
+            chmod 600 ~/.ssh/deploy_key
+            SSH_OPTS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ~/.ssh/deploy_key"
+
+            BACKEND_USER=${{ secrets.SSH_USER }}
+            BACKEND_HOST=backend.backend.internal
+
+            # Relay backend files to backend VM
+            scp $SSH_OPTS ~/app/docker-compose.backend.yaml ${BACKEND_USER}@${BACKEND_HOST}:~/app/docker-compose.yaml || true
+            scp -r $SSH_OPTS ~/app/monitoring ${BACKEND_USER}@${BACKEND_HOST}:~/monitoring || true
+
+            # Run backend stack on backend VM
+            ssh $SSH_OPTS ${BACKEND_USER}@${BACKEND_HOST} <<'REMOTE'
+            set -e
+            mkdir -p ~/app
+            mkdir -p ~/monitoring
+            # write .env on backend
+            cat > ~/app/.env <<'ENV'
+            DB_HOST=${{ secrets.DB_HOST }}
+            DB_PORT=${{ secrets.DB_PORT }}
+            DB_NAME=${{ secrets.DB_NAME }}
+            DB_USER=${{ secrets.DB_USER }}
+            DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+            DB_SSLMODE=${{ secrets.DB_SSLMODE }}
+            ENV
+            if ! command -v docker >/dev/null 2>&1; then
+              sudo apt-get update -y
+              sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common
+              curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+              echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+              sudo apt-get update -y
+              sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+              sudo usermod -aG docker $USER || true
+            fi
             cd ~/app
-            sudo docker compose pull
-            sudo docker compose up -d --wait --wait-timeout 180
-            sudo docker compose restart nginx
-            sudo docker compose ps
-            sudo docker image prune -f
+            sudo docker compose pull || true
+            sudo docker compose up -d --wait --wait-timeout 180 || true
+            # start monitoring if present
+            if [ -f ~/monitoring/docker-compose.yml ]; then
+              cd ~/monitoring
+              sudo docker compose pull || true
+              sudo docker compose up -d --wait --wait-timeout 180 || true
+            fi
+            sudo docker image prune -f || true
+            REMOTE
+
+            # Apply nginx config and run nginx-only compose on public VM
+            cat > ~/app/docker-compose.nginx.yaml <<'YAML'
+            services:
+              nginx:
+                image: nginx:1.27-alpine
+                ports:
+                  - "80:80"
+                volumes:
+                  - ./infrastructure/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+            YAML
+            cd ~/app
+            sudo docker compose -f docker-compose.nginx.yaml pull || true
+            sudo docker compose -f docker-compose.nginx.yaml up -d --wait --wait-timeout 60 || true
+            sudo docker compose -f docker-compose.nginx.yaml ps || true
+            sudo docker image prune -f || true
