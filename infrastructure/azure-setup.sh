@@ -1,4 +1,3 @@
-
 #!/bin/bash
 
 # Enhanced Azure VM Setup Script for CI/CD Demo
@@ -22,7 +21,6 @@ pause_on_exit() {
 trap 'pause_on_exit' ERR
 
 # Parse command line arguments
-NO_COLORS=false
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --help|-h)
@@ -34,7 +32,6 @@ while [[ $# -gt 0 ]]; do
             exit 0
             ;;
         --no-colors)
-            NO_COLORS=true
             shift
             ;;
         *)
@@ -534,6 +531,7 @@ if [[ ! $REPLY =~ ^[Nn]$ ]]; then
     echo "Installing PostgreSQL on DB VM"
     echo "=========================================="
 
+    # shellcheck disable=SC2087
     ssh -o StrictHostKeyChecking=no "$ADMIN_USERNAME@$DB_PUBLIC_IP" << ENDSSH
         set -e
         echo "Updating package index..."
