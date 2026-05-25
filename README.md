@@ -62,10 +62,12 @@ The shared network is created automatically by either compose stack, so you can 
 
 Then open:
 
-- Prometheus: http://localhost:9090
-- Grafana: http://localhost:3000
+- Prometheus: http://<vm-public-ip>:9090
+- Grafana: http://<vm-public-ip>:3000
 
 Grafana uses `admin` as the default password unless you set `GRAFANA_ADMIN_PASSWORD`.
+
+When deploying to Azure VM, make sure ports 3000 and 9090 are open in the VM NSG and host firewall.
 
 ## Project Structure
 
