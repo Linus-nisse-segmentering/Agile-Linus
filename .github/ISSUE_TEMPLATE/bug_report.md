@@ -1,26 +1,27 @@
 name: Bug report
 about: Rapporter en fejl i applikationen
-title: '[BUG] <kort titel>'
+title: '[BUG] Login virker ikke efter deployment'
 labels: bug
 assignees: ''
 
 ## Beskrivelse
-Kort beskrivelse af fejlen.
+Brugere kan ikke logge ind i applikationen efter deployment til produktionsmiljøet. Login-knappen reagerer, men brugeren bliver ikke viderestillet til dashboardet.
 
 ## Trin til at reproducere
-1. Gå til ...
-2. Klik på ...
-3. Observer fejl
+1. Gå til login-siden
+2. Indtast gyldigt brugernavn og password
+3. Klik på "Login"
+4. Observer fejlen
 
 ## Forventet adfærd
-Hvad forventede du at ske?
+Brugeren burde blive logget ind og viderestillet til dashboardet.
 
 ## Faktisk adfærd
-Hvad skete i stedet?
+Siden loader kortvarigt, men brugeren forbliver på login-siden uden fejlbesked.
 
 ## Miljø
-- Version/commit:
-- Browser/OS:
+- Version/commit: latest deployment
+- Browser/OS: Google Chrome / Windows 11
 
 ## Yderligere information
-Logs, screenshots eller andre detaljer.
+Fejlen opstod efter seneste deployment. Konsollen viser muligvis en 500-fejl fra backend API'et ved login-request.
