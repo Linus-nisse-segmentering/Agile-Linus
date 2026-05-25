@@ -245,7 +245,7 @@ echo ""
 echo "=========================================="
 echo "Configuring Network Security"
 echo "=========================================="
-echo "Opening ports: 22 (SSH), 80 (HTTP), 443 (HTTPS)"
+echo "Opening ports: 22 (SSH), 80 (HTTP), 443 (HTTPS), 3000 (Grafana), 9090 (Prometheus)"
 
 az vm open-port \
     --resource-group "$RESOURCE_GROUP" \
@@ -266,6 +266,20 @@ az vm open-port \
     --name "$VM_NAME" \
     --port 443 \
     --priority 310 \
+    --output table
+
+az vm open-port \
+    --resource-group "$RESOURCE_GROUP" \
+    --name "$VM_NAME" \
+    --port 3000 \
+    --priority 320 \
+    --output table
+
+az vm open-port \
+    --resource-group "$RESOURCE_GROUP" \
+    --name "$VM_NAME" \
+    --port 9090 \
+    --priority 330 \
     --output table
 
 echo -e "${GREEN}✅ Ports configured${NC}"
@@ -495,6 +509,8 @@ if [[ ! $REPLY =~ ^[Nn]$ ]]; then
         sudo ufw allow 22/tcp
         sudo ufw allow 80/tcp
         sudo ufw allow 443/tcp
+        sudo ufw allow 3000/tcp
+        sudo ufw allow 9090/tcp
 
         echo "Creating app directory..."
         mkdir -p ~/app
