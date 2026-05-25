@@ -712,6 +712,9 @@ else
     echo "$DB_NAME" | gh secret set DB_NAME
     echo "$DB_USER" | gh secret set DB_USER
     echo "$DB_PASSWORD" | gh secret set DB_PASSWORD
+    # Set backend host/port so deploy workflow can point nginx at the correct backend
+    echo "$BACKEND_PRIVATE_IP" | gh secret set BACKEND_HOST
+    echo "1010" | gh secret set BACKEND_PORT
     
     echo -e "${GREEN}✅ GitHub secrets set successfully${NC}"
 fi

@@ -70,8 +70,8 @@ jobs:
             mv ~/app/monitoring/docker-compose.yml ~/app/monitoring/docker-compose.yml 2>/dev/null || true
             mv ~/app/infrastructure/nginx/default.conf ~/app/infrastructure/nginx/default.conf 2>/dev/null || true
 
-            # Create env file that will also be forwarded to backend
-            printf '%s\n' "DB_HOST=${{ secrets.DB_HOST }}" "DB_PORT=${{ secrets.DB_PORT }}" "DB_NAME=${{ secrets.DB_NAME }}" "DB_USER=${{ secrets.DB_USER }}" "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" "DB_SSLMODE=${{ secrets.DB_SSLMODE }}" > ~/app/.env
+            # Create env file that will also be forwarded to backend and used by nginx template
+            printf '%s\n' "DB_HOST=${{ secrets.DB_HOST }}" "DB_PORT=${{ secrets.DB_PORT }}" "DB_NAME=${{ secrets.DB_NAME }}" "DB_USER=${{ secrets.DB_USER }}" "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" "DB_SSLMODE=${{ secrets.DB_SSLMODE }}" "BACKEND_HOST=${{ secrets.BACKEND_HOST }}" "BACKEND_PORT=${{ secrets.BACKEND_PORT }}" "GRAFANA_PORT=3000" "PROMETHEUS_PORT=9090" > ~/app/.env
 
             if ! command -v docker >/dev/null 2>&1; then
               echo "Docker not found. Installing..."
