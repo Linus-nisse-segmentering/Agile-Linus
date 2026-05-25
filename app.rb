@@ -132,7 +132,6 @@ end
 # WEB ROUTES (HTML pages)
 # ============================================
 
-
 # Enhanced error logging for debugging
 error do
   e = env['sinatra.error']
@@ -621,7 +620,7 @@ end
 # Log details for 404s to help debug missing routes
 not_found do
   puts "NotFound handler triggered for path: #{request.path_info}"
-  puts "Request env keys: #{request.env.keys.select { |k| k =~ /REQUEST|PATH|HTTP/ }.join(', ')}"
+  puts "Request env keys: #{request.env.keys.grep(/REQUEST|PATH|HTTP/).join(', ')}"
   content_type 'text/html'
   '<h1>Not Found</h1>'
 end

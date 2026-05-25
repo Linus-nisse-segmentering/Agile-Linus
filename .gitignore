@@ -1,2 +1,3 @@
 # Ignore setup log file from Azure setup script
 infrastructure/setup.log
+infrastructure/teardown.log

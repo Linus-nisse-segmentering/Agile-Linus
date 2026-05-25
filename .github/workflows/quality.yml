@@ -9,6 +9,26 @@ on:
 jobs:
   lint-and-test:
     runs-on: ubuntu-latest
+    env:
+      DB_HOST: localhost
+      DB_PORT: 5432
+      DB_NAME: recipe_cookbook
+      DB_USER: recipe_user
+      DB_PASSWORD: recipe_pass
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_DB: recipe_cookbook
+          POSTGRES_USER: recipe_user
+          POSTGRES_PASSWORD: recipe_pass
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U recipe_user"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
       - name: Check out repository
@@ -22,6 +42,21 @@ jobs:
 
       - name: Install dependencies
         run: bundle install
+
+      - name: Wait for Postgres
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+          until pg_isready -h localhost -p 5432 -U ${{ env.DB_USER }}; do sleep 1; done
+
+      - name: Migrate SQLite -> Postgres
+        env:
+          DB_HOST: ${{ env.DB_HOST }}
+          DB_PORT: ${{ env.DB_PORT }}
+          DB_NAME: ${{ env.DB_NAME }}
+          DB_USER: ${{ env.DB_USER }}
+          DB_PASSWORD: ${{ env.DB_PASSWORD }}
+        run: ruby db/migrate_sqlite_to_postgres.rb
 
       - name: Lint with RuboCop
         run: bundle exec rubocop
