@@ -115,3 +115,54 @@ Stop:
 ```bash
 docker compose -f docker-compose.prod.yaml down
 ```
+
+## Kørsel af monitorering (Prometheus/Grafana)
+
+Monitorering startes i en separat compose-fil:
+
+```bash
+docker compose -f monitoring/docker-compose.yml up -d
+```
+
+Adresser:
+
+- Prometheus: `http://localhost:9090`
+- Grafana: `http://localhost:3000`
+
+Standard-login i Grafana:
+
+- Bruger: `admin`
+- Password: `admin` (kan overskrives med `GRAFANA_ADMIN_PASSWORD`)
+
+Stop monitorering:
+
+```bash
+docker compose -f monitoring/docker-compose.yml down
+```
+
+## Projektstruktur
+
+```text
+.
+├── app.rb                         # Sinatra app og API-ruter
+├── config.ru                      # Rack entrypoint
+├── Dockerfile                     # Build af app-container
+├── docker-compose.yaml            # Lokal stack (db + app + nginx)
+├── docker-compose.prod.yaml       # Produktionsstack
+├── db/
+│   ├── schema.pg.sql              # PostgreSQL schema
+│   ├── seeds.sql                  # Seed data
+│   ├── schema.sql                 # Legacy SQLite schema
+│   └── migrate_sqlite_to_postgres.rb
+├── views/                         # ERB templates
+├── static/                        # CSS og Swagger assets
+├── spec/                          # RSpec tests
+├── infrastructure/
+│   ├── nginx/default.conf         # Reverse proxy config
+│   ├── azure-setup.sh             # VM setup
+│   └── azure-teardown.sh
+├── monitoring/
+│   ├── docker-compose.yml         # Prometheus + Grafana
+│   └── prometheus.yml
+└── docs/                          # Projekt- og procesdokumentation
+```
