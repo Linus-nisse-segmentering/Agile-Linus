@@ -19,8 +19,8 @@ services:
   app:
     image: ghcr.io/linus-nisse-segmentering/agile-linus:latest
     container_name: sinatra-app
-    expose:
-      - "1010"
+    ports:
+      - "1010:1010"
     environment:
       - RACK_ENV=production
       - DB_HOST=db
