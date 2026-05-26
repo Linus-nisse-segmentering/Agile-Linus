@@ -1,4 +1,4 @@
-# Recipe Cookbook - Ruby/Sinatra Edition
+# Agile-Linus Cookbook (Ruby/Sinatra)
 
 ![Quality Pipeline](https://github.com/Linus-nisse-segmentering/Agile-Linus/actions/workflows/quality.yml/badge.svg)
 ![SonarCloud](https://sonarcloud.io/api/project_badges/measure?project=Linus-nisse-segmentering_Agile-Linus&metric=alert_status)
@@ -6,225 +6,56 @@
 ![Linted with RuboCop](https://img.shields.io/badge/lint-RuboCop-black)
 ![Tested with RSpec](https://img.shields.io/badge/test-RSpec-red)
 
-A recipe cookbook web application built with Ruby and the Sinatra framework, featuring a retro 90s-style interface and a RESTful API.
+Et studieprojekt med en opskrift-app bygget i Ruby/Sinatra, PostgreSQL og Docker.
 
-## Features
+Formålet med denne README er at gøre projektet let at forstå, starte og arbejde videre på for studerende.
 
-- Browse recipes with ingredients and tags
-- View detailed recipe instructions
-- RESTful API for recipes, ingredients, tags, and users
-- PostgreSQL database with full schema and seed data
-- Retro 90s web design aesthetic
+## Indholdsfortegnelse
 
-## Prerequisites
+1. Projektoverblik
+2. Hurtig start
+3. Installation og lokale krav
+4. Kørsel med Docker
+5. Kørsel af monitorering (Prometheus/Grafana)
+6. Projektstruktur
+7. Web-ruter (HTML)
+8. API-ruter (JSON)
+9. Database
+10. Miljøvariabler
+11. Test og kodekvalitet
+12. Deployment
+13. Fejlfinding
+14. Kendte begrænsninger
 
-- Docker
-- Docker Compose
+## Projektoverblik
 
-## Running on the Azure VM
+Applikationen består af tre centrale dele:
 
-Use the production compose file on the VM host:
+- `sinatra-app`: selve Ruby/Sinatra-applikationen (kører internt på port `1010`).
+- `sinatra-db`: PostgreSQL-database med opskrifter, tags, ingredienser og brugere.
+- `sinatra-nginx`: reverse proxy, som eksponerer appen på port `80`.
 
-```bash
-docker compose -f docker-compose.prod.yaml up -d
-```
+Derudover kan der startes en separat monitoreringsstack:
 
-The application is served through nginx on port 80, so open:
+- Prometheus til metrics.
+- Grafana til dashboards.
 
-- App: http://<vm-public-ip>
-- API docs: http://<vm-public-ip>/apidocs
-- API schema: http://<vm-public-ip>/api/schema
+## Hurtig start
 
-The app container still listens internally on port 1010 for container-to-container traffic.
-
-To stop the stack:
-
-```bash
-docker compose -f docker-compose.prod.yaml down
-```
-
-To view logs:
-
-```bash
-docker compose -f docker-compose.prod.yaml logs -f
-```
-
-## Monitoring
-
-Prometheus scrapes the backend through nginx on a shared Docker network, and Grafana is pre-provisioned with Prometheus as its datasource.
-
-Start the monitoring stack on the VM in a second terminal:
+Kør følgende fra projektroden:
 
 ```bash
-docker compose -f monitoring/docker-compose.yml up -d
+docker compose up --build
 ```
 
-The shared network is created automatically by either compose stack, so you can start the app or monitoring stack first.
+Åbn derefter:
 
-Then open:
+- App: `http://localhost`
+- API docs (Swagger UI): `http://localhost/apidocs`
+- OpenAPI schema: `http://localhost/api/schema`
 
-- Prometheus: http://<vm-public-ip>:9090
-- Grafana: http://<vm-public-ip>:3000
-
-Grafana uses `admin` as the default password unless you set `GRAFANA_ADMIN_PASSWORD`.
-
-When deploying to Azure VM, make sure ports 3000 and 9090 are open in the VM NSG and host firewall.
-
-## Project Structure
-
-```
-.
-├── backend/
-│   ├── server.rb       # Main Sinatra backend application
-│   ├── config.ru       # Rack configuration
-│   ├── openapi/
-│   │   └── api-schema.yaml # OpenAPI schema
-│   ├── database/
-│   │   ├── schema.sql      # SQLite schema (legacy)
-│   │   ├── schema.pg.sql   # PostgreSQL schema
-│   │   ├── seeds.sql       # Seed data
-│   │   ├── setup.rb        # SQLite setup script (legacy)
-│   │   └── migrate_sqlite_to_postgres.rb # One-time migration script
-│   └── spec/
-│       ├── app_spec.rb
-│       └── spec_helper.rb
-├── frontend/
-│   ├── templates/
-│   │   ├── layout.erb      # Base layout template
-│   │   ├── home.erb        # Home page template
-│   │   └── recipe_detail.erb  # Recipe detail template
-│   └── public/
-│       └── style.css       # Stylesheet
-├── Gemfile             # Ruby dependencies
-├── infrastructure/
-│   ├── azure-setup.sh  # Azure VM provisioning helper
-│   └── nginx/
-│       └── default.conf # nginx reverse proxy configuration
-├── docs/
-│   └── deployment-strategy.md # Deployment strategy, SLA, and DoD
-└── .github/
-    └── workflows/
-        └── cd.yml     # Continuous deployment pipeline
-```
-
-## API Endpoints
-
-### Web Routes
-- `GET /` - Home page with all recipes
-- `GET /recipes/:id/` - Recipe detail page
-
-### API Routes
-
-#### Users
-- `POST /api/user/create/` - Create a new user
-- `GET /api/user/me/` - Get current user
-- `PUT /api/user/me/` - Update current user
-- `PATCH /api/user/me/` - Partial update current user
-- `POST /api/user/token/` - Create user token (login)
-
-#### Recipes
-- `GET /api/recipe/recipes/` - List all recipes
-- `POST /api/recipe/recipes/` - Create a new recipe
-- `GET /api/recipe/recipes/:id/` - Get a specific recipe
-- `PUT /api/recipe/recipes/:id/` - Update a recipe
-- `PATCH /api/recipe/recipes/:id/` - Partial update a recipe
-- `DELETE /api/recipe/recipes/:id/` - Delete a recipe
-- `POST /api/recipe/recipes/:id/upload-image/` - Upload recipe image
-
-#### Ingredients
-- `GET /api/recipe/ingredients/` - List all ingredients
-- `PUT /api/recipe/ingredients/:id/` - Update an ingredient
-- `PATCH /api/recipe/ingredients/:id/` - Partial update an ingredient
-- `DELETE /api/recipe/ingredients/:id/` - Delete an ingredient
-
-#### Tags
-- `GET /api/recipe/tags/` - List all tags
-- `PUT /api/recipe/tags/:id/` - Update a tag
-- `PATCH /api/recipe/tags/:id/` - Partial update a tag
-- `DELETE /api/recipe/tags/:id/` - Delete a tag
-
-## Database Schema
-
-The application uses PostgreSQL with the following tables:
-- `users` - User accounts
-- `recipes` - Recipe information
-- `ingredients` - Ingredient master list
-- `tags` - Tag master list
-- `recipe_ingredients` - Many-to-many relationship between recipes and ingredients
-- `recipe_tags` - Many-to-many relationship between recipes and tags
-
-## Development
-
-The database is automatically set up when the production stack starts on the VM. If you need to refresh the deployment on the VM, restart the production stack:
-```bash
-docker compose -f docker-compose.prod.yaml down
-docker compose -f docker-compose.prod.yaml up -d
-```
-
-## Database Configuration
-
-The app uses PostgreSQL. These environment variables configure the connection:
- 
-- `DB_HOST` (default: `localhost`)
-- `DB_PORT` (default: `5432`)
-- `DB_NAME` (default: `recipe_cookbook`)
-- `DB_USER` (default: `recipe_user`)
-- `DB_PASSWORD` (default: `recipe_pass`)
-- `DB_SSLMODE` (default: `prefer`)
-
-Set `DB_INIT=true` to create the schema and seed the database on startup. Use it once for new databases and then remove it for shared environments.
-
-## Migrating from SQLite to PostgreSQL
-
-If you have existing SQLite data in `app.db`, migrate it into PostgreSQL with:
+Stop igen med:
 
 ```bash
-DB_HOST=localhost \
-DB_PORT=5432 \
-DB_NAME=recipe_cookbook \
-DB_USER=recipe_user \
-DB_PASSWORD=recipe_pass \
-SQLITE_PATH=./app.db \
-ruby backend/database/migrate_sqlite_to_postgres.rb
+docker compose down
 ```
-
-If the Postgres database already contains data, set `PG_CLEAR=true` to truncate tables before migrating.
-
-## Quality and Testing
-
-- Test framework: RSpec + Rack::Test
-- Linting: RuboCop
-- CI quality pipeline: `.github/workflows/quality.yml`
-- Sonar code-quality scan: `.github/workflows/quality.yml`
-- Shared Git hooks: `.githooks/pre-commit`
-
-The quality pipeline now runs RuboCop, RSpec, and a Sonar scan. Add a `SONAR_TOKEN` repository secret before enabling the scan in GitHub Actions.
-
-Run checks locally:
-
-```bash
-bundle exec rubocop
-bundle exec rspec
-```
-
-Enable shared Git hooks for your clone:
-
-```powershell
-./scripts/setup-git-hooks.ps1
-```
-
-See [docs/software-quality.md](docs/software-quality.md) for the full quality workflow and standards.
-
-## Deployment Strategy
-
-Deployment is container-based: nginx receives public traffic on port 80 and proxies it to the Sinatra app on port 1010. The Azure VM setup script prepares the host for this compose stack, and the GitHub Actions workflow performs the build-and-deploy flow on `main`.
-
-## SLA and Definition of Done
-
-The service target for this educational deployment is 99.5% availability during the demo window, with a recovery target of 15 minutes for a failed release. A deployment is done only when the compose stack validates, nginx serves the application, and `/metrics` remains reachable for monitoring.
-
-See [docs/deployment-strategy.md](docs/deployment-strategy.md) for the full rollout and rollback notes.
-
-## License
-
-This project is for educational purposes.
