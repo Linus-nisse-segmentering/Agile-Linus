@@ -94,7 +94,7 @@ jobs:
               sudo apt-get install -y gettext-base || true
             fi
             if [ -f ~/app/infrastructure/nginx/default.conf ]; then
-              envsubst '${BACKEND_HOST} ${BACKEND_PORT}' < ~/app/infrastructure/nginx/default.conf > ~/app/infrastructure/nginx/default.conf.processed || true
+              envsubst '${BACKEND_HOST} ${BACKEND_PORT} ${GRAFANA_PORT} ${PROMETHEUS_PORT}' < ~/app/infrastructure/nginx/default.conf > ~/app/infrastructure/nginx/default.conf.processed || true
               mv ~/app/infrastructure/nginx/default.conf.processed ~/app/infrastructure/nginx/default.conf || true
             fi
 
