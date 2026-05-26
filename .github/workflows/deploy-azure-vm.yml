@@ -1,4 +1,4 @@
-name: Deploy to Azure VM
+name: Deploy to Azure VM (unstuck)
 
 on:
   push:
@@ -6,6 +6,7 @@ on:
       - main
       - test-deploy
       - devtest-workflow
+      - unstuck-test-deploy
   workflow_dispatch:
 
 permissions:
@@ -13,7 +14,10 @@ permissions:
   packages: write
 
 concurrency:
-  group: deploy-azure-vm
+  # Make concurrency group specific to the branch/ref so runs on other
+  # branches don't block each other. Uses `github.ref_name` to avoid
+  # including the full `refs/heads/` prefix in the group name.
+  group: deploy-azure-vm-${{ github.ref_name }}
   cancel-in-progress: true
 
 env:
@@ -124,10 +128,14 @@ jobs:
             BACKEND_USER=${{ secrets.SSH_USER }}
             BACKEND_HOST=${{ secrets.BACKEND_HOST }}
 
+            # Ensure relay targets exist before copying; scp fails if the remote directory is missing.
+            ssh $SSH_OPTS ${BACKEND_USER}@${BACKEND_HOST} "mkdir -p ~/app ~/monitoring"
+
             # Relay backend files to backend VM
-            scp $SSH_OPTS ~/app/docker-compose.backend.yaml ${BACKEND_USER}@${BACKEND_HOST}:~/app/docker-compose.yaml || true
-            scp -r $SSH_OPTS ~/app/monitoring ${BACKEND_USER}@${BACKEND_HOST}:~/monitoring || true
-            scp $SSH_OPTS ~/app/image_latest.tar.gz ${BACKEND_USER}@${BACKEND_HOST}:~/app/image_latest.tar.gz || true
+            scp $SSH_OPTS ~/app/docker-compose.backend.yaml ${BACKEND_USER}@${BACKEND_HOST}:~/app/docker-compose.yaml
+            # Copy monitoring contents (not the parent folder) to avoid ~/monitoring/monitoring nesting
+            scp -r $SSH_OPTS ~/app/monitoring/* ${BACKEND_USER}@${BACKEND_HOST}:~/monitoring/
+            scp $SSH_OPTS ~/app/image_latest.tar.gz ${BACKEND_USER}@${BACKEND_HOST}:~/app/image_latest.tar.gz
 
             # Run backend stack on backend VM
             ssh $SSH_OPTS ${BACKEND_USER}@${BACKEND_HOST} <<'REMOTE'
@@ -136,6 +144,7 @@ jobs:
             mkdir -p ~/monitoring
             # write .env on backend
             printf '%s\n' "DB_HOST=${{ secrets.DB_HOST }}" "DB_PORT=${{ secrets.DB_PORT }}" "DB_NAME=${{ secrets.DB_NAME }}" "DB_USER=${{ secrets.DB_USER }}" "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" "DB_SSLMODE=${{ secrets.DB_SSLMODE }}" > ~/app/.env
+            printf '%s\n' "GRAFANA_ROOT_URL=http://${{ secrets.SSH_HOST }}/grafana/" > ~/monitoring/.env
             if ! command -v docker >/dev/null 2>&1; then
               sudo apt-get update -y
               sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common
@@ -145,6 +154,7 @@ jobs:
               sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
               sudo usermod -aG docker $USER || true
             fi
+            sudo docker network create agile-linus-shared-monitoring >/dev/null 2>&1 || true
             cd ~/app
             # If an image tar was provided, load it to avoid GHCR auth issues
             if [ -f ~/app/image_latest.tar.gz ]; then
@@ -157,7 +167,12 @@ jobs:
             if [ -f ~/monitoring/docker-compose.yml ]; then
               cd ~/monitoring
               sudo docker compose pull || true
-              sudo docker compose up -d --wait --wait-timeout 180 || true
+              sudo docker compose up -d --force-recreate --wait --wait-timeout 180 || true
+            elif [ -f ~/monitoring/monitoring/docker-compose.yml ]; then
+              # Backward-compat cleanup if older runs created nested monitoring/monitoring
+              cd ~/monitoring/monitoring
+              sudo docker compose pull || true
+              sudo docker compose up -d --force-recreate --wait --wait-timeout 180 || true
             fi
             sudo docker image prune -f || true
             REMOTE

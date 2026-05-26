@@ -253,6 +253,7 @@ end
 
 def swagger_ui_html
   api_schema_url = "#{request.base_url}/api/schema"
+
   head = swagger_ui_head
   body = swagger_ui_body(api_schema_url)
 
