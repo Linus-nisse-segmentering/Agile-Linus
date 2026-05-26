@@ -3,6 +3,9 @@ info:
   title: Recipe Cookbook API
   version: 1.0.0
   description: A recipe cookbook API with detailed cooking instructions and ingredient measurements
+servers:
+  - url: /
+    description: Same-origin deployment
 paths:
   /:
     get:

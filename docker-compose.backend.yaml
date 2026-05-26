@@ -8,8 +8,6 @@ services:
       - POSTGRES_PASSWORD=recipe_pass
     volumes:
       - recipe_db_data_v2:/var/lib/postgresql/data
-    networks:
-      - shared-monitoring
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U recipe_user -d recipe_cookbook"]
@@ -21,8 +19,8 @@ services:
   app:
     image: ghcr.io/linus-nisse-segmentering/agile-linus:latest
     container_name: sinatra-app
-    expose:
-      - "1010"
+    ports:
+      - "1010:1010"
     environment:
       - RACK_ENV=production
       - DB_HOST=db
@@ -36,8 +34,6 @@ services:
       db:
         condition: service_healthy
     restart: unless-stopped
-    networks:
-      - shared-monitoring
     healthcheck:
       test: ["CMD-SHELL", "ruby -e \"require 'net/http'; res = Net::HTTP.get_response(URI('http://127.0.0.1:1010/metrics')); exit(res.is_a?(Net::HTTPSuccess) ? 0 : 1)\""]
       interval: 15s
@@ -45,23 +41,9 @@ services:
       retries: 10
       start_period: 20s
 
-  nginx:
-    image: nginx:1.27-alpine
-    container_name: sinatra-nginx
-    depends_on:
-      app:
-        condition: service_healthy
-    ports:
-      - "80:80"
-    volumes:
-      - ./infrastructure/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
-    networks:
-      - shared-monitoring
-    restart: unless-stopped
-
-networks:
-  shared-monitoring:
-    name: agile-linus-shared-monitoring
-
 volumes:
   recipe_db_data_v2:
+
+networks:
+  backend-net:
+    external: false

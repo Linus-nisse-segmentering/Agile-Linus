@@ -2,15 +2,15 @@
 
 ## Overview
 
-The application is deployed as a two-container Docker Compose stack. The Sinatra app runs on port `1010` inside the network, and nginx exposes the service publicly on port `80`.
+The application is deployed on an Azure VM as a Docker Compose stack. The Sinatra app runs on port `1010` inside the network, and nginx exposes the service publicly on port `80`.
 
 ## Release Flow
 
 1. Build the image from [Dockerfile](../Dockerfile).
-2. Validate the stack locally with `docker compose up --build`.
-3. Deploy to the Azure VM prepared by [infrastructure/azure-setup.sh](../infrastructure/azure-setup.sh).
-4. Refresh the compose stack on the host with `docker compose up -d --build`.
-5. Confirm the homepage, `/api/schema`, and `/metrics` endpoints work through nginx.
+2. Deploy to the Azure VM prepared by [infrastructure/azure-setup.sh](../infrastructure/azure-setup.sh).
+3. Start the production stack on the VM with `docker compose -f docker-compose.prod.yaml up -d`.
+4. Start monitoring with `docker compose -f monitoring/docker-compose.yml up -d`.
+5. Confirm the homepage, `/api/schema`, `/apidocs`, and `/metrics` endpoints work through nginx on the VM public IP.
 
 ## Rollback
 
