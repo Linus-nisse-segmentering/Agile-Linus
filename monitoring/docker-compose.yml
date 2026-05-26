@@ -4,16 +4,15 @@ services:
     restart: unless-stopped
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
-    ports:
-      - "9090:9090"
+    # Prometheus runs on the backend VM and is only reachable via private DNS
+    # Do not publish port 9090 to the public host when running on the backend.
     networks:
       - shared-monitoring
 
   grafana:
     image: grafana/grafana:latest
     restart: unless-stopped
-    ports:
-      - "3000:3000"
+    # Grafana will be proxied via nginx on the public VM; avoid binding to host port here.
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
     volumes:

@@ -1,4 +1,3 @@
-
 #!/bin/bash
 
 # Enhanced Azure VM Setup Script for CI/CD Demo
@@ -22,7 +21,6 @@ pause_on_exit() {
 trap 'pause_on_exit' ERR
 
 # Parse command line arguments
-NO_COLORS=false
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --help|-h)
@@ -34,7 +32,6 @@ while [[ $# -gt 0 ]]; do
             exit 0
             ;;
         --no-colors)
-            NO_COLORS=true
             shift
             ;;
         *)
@@ -57,6 +54,16 @@ ADMIN_USERNAME="azureuser"
 SSH_KEY_PATH="$HOME/.ssh/id_rsa.pub"   # Change this path to point at your public key - (your private key should be in the same folder, and should be set in SSH_PRIVATE_KEY on GitHub)
 SSH_PRIVATE_KEY_PATH="${SSH_KEY_PATH%.pub}"
 APP_PUBLIC_IP_NAME="recipe-cookbook-public-ip"
+
+# Backend (private) VM settings
+BACKEND_VM_NAME="recipe-cookbook-backend-vm"
+BACKEND_NIC_NAME="${BACKEND_VM_NAME}-nic"
+BACKEND_NSG_NAME="${BACKEND_VM_NAME}-nsg"
+BACKEND_VM_SIZE="Standard_B1s"
+
+# Private DNS (internal name for backend)
+PRIVATE_DNS_ZONE_NAME="backend.internal"
+PRIVATE_DNS_RECORD_NAME="backend"
 
 # Database VM configuration
 DB_VM_NAME="recipe-cookbook-db-vm"
@@ -245,7 +252,7 @@ echo ""
 echo "=========================================="
 echo "Configuring Network Security"
 echo "=========================================="
-echo "Opening ports: 22 (SSH), 80 (HTTP), 443 (HTTPS)"
+echo "Opening ports: 22 (SSH), 80 (HTTP), 443 (HTTPS), 3000 (Grafana), 9090 (Prometheus)"
 
 az vm open-port \
     --resource-group "$RESOURCE_GROUP" \
@@ -266,6 +273,20 @@ az vm open-port \
     --name "$VM_NAME" \
     --port 443 \
     --priority 310 \
+    --output table
+
+az vm open-port \
+    --resource-group "$RESOURCE_GROUP" \
+    --name "$VM_NAME" \
+    --port 3000 \
+    --priority 320 \
+    --output table
+
+az vm open-port \
+    --resource-group "$RESOURCE_GROUP" \
+    --name "$VM_NAME" \
+    --port 9090 \
+    --priority 330 \
     --output table
 
 echo -e "${GREEN}✅ Ports configured${NC}"
@@ -300,6 +321,74 @@ az network nic ip-config update \
     --name "$APP_IPCONFIG_NAME" \
     --private-ip-address "$APP_PRIVATE_IP" \
     --output table
+
+# Derive VNet and Subnet names from the app NIC so we can reuse the same subnet for backend NIC
+APP_SUBNET_ID=$(az network nic show \
+    --ids "$APP_NIC_ID" \
+    --query "ipConfigurations[0].subnet.id" \
+    --output tsv)
+
+VNET_NAME=$(echo "$APP_SUBNET_ID" | awk -F/ '{print $(NF-2)}')
+SUBNET_NAME=$(echo "$APP_SUBNET_ID" | awk -F/ '{print $NF}')
+
+# --- Create backend NIC and VM (private-only) ---
+echo ""
+echo "=========================================="
+echo "Creating Backend (private) VM and NIC"
+echo "=========================================="
+if az network nic show --resource-group "$RESOURCE_GROUP" --name "$BACKEND_NIC_NAME" &> /dev/null; then
+    echo -e "⚠️  Backend NIC $BACKEND_NIC_NAME already exists. Reusing.${NC}"
+else
+    az network nic create \
+        --resource-group "$RESOURCE_GROUP" \
+        --name "$BACKEND_NIC_NAME" \
+        --vnet-name "$VNET_NAME" \
+        --subnet "$SUBNET_NAME" \
+        --output table
+    echo -e "${GREEN}✅ Backend NIC created${NC}"
+fi
+
+BACKEND_NIC_ID=$(az network nic show --resource-group "$RESOURCE_GROUP" --name "$BACKEND_NIC_NAME" --query id -o tsv)
+
+if az vm show --resource-group "$RESOURCE_GROUP" --name "$BACKEND_VM_NAME" &> /dev/null; then
+    echo -e "${YELLOW}⚠️  Backend VM already exists. Skipping creation.${NC}"
+else
+    az vm create \
+        --resource-group "$RESOURCE_GROUP" \
+        --name "$BACKEND_VM_NAME" \
+        --nics "$BACKEND_NIC_ID" \
+        --image "Canonical:0001-com-ubuntu-server-jammy:22_04-lts:latest" \
+        --size "$BACKEND_VM_SIZE" \
+        --admin-username "$ADMIN_USERNAME" \
+        --ssh-key-values "$(cat "$SSH_KEY_PATH")" \
+        --public-ip-address "" \
+        --output table
+
+    echo -e "${GREEN}✅ Backend VM created (no public IP)${NC}"
+fi
+
+BACKEND_PRIVATE_IP=$(az network nic show --resource-group "$RESOURCE_GROUP" --name "$BACKEND_NIC_NAME" --query "ipConfigurations[0].privateIpAddress" -o tsv)
+echo "Backend private IP: $BACKEND_PRIVATE_IP"
+
+# Create Private DNS zone and link to VNet, add A record for backend
+if az network private-dns zone show --resource-group "$RESOURCE_GROUP" --name "$PRIVATE_DNS_ZONE_NAME" &> /dev/null; then
+    echo -e "${YELLOW}⚠️  Private DNS zone $PRIVATE_DNS_ZONE_NAME exists. Reusing.${NC}"
+else
+    az network private-dns zone create --resource-group "$RESOURCE_GROUP" --name "$PRIVATE_DNS_ZONE_NAME"
+    echo -e "${GREEN}✅ Private DNS zone created: $PRIVATE_DNS_ZONE_NAME${NC}"
+fi
+
+# Link zone to VNet
+if az network private-dns link vnet show --resource-group "$RESOURCE_GROUP" --zone-name "$PRIVATE_DNS_ZONE_NAME" --name "link-$VNET_NAME" &> /dev/null; then
+    echo -e "${YELLOW}⚠️  Private DNS zone already linked to VNet.${NC}"
+else
+    az network private-dns link vnet create --resource-group "$RESOURCE_GROUP" --zone-name "$PRIVATE_DNS_ZONE_NAME" --name "link-$VNET_NAME" --virtual-network "/subscriptions/$(az account show --query id -o tsv)/resourceGroups/$RESOURCE_GROUP/providers/Microsoft.Network/virtualNetworks/$VNET_NAME" --registration-enabled false
+    echo -e "${GREEN}✅ Private DNS zone linked to VNet${NC}"
+fi
+
+# Create A record for backend
+az network private-dns record-set a create --resource-group "$RESOURCE_GROUP" --zone-name "$PRIVATE_DNS_ZONE_NAME" --name "$PRIVATE_DNS_RECORD_NAME" --ttl 300 || true
+az network private-dns record-set a add-record --resource-group "$RESOURCE_GROUP" --zone-name "$PRIVATE_DNS_ZONE_NAME" --record-set-name "$PRIVATE_DNS_RECORD_NAME" --ipv4-address "$BACKEND_PRIVATE_IP" || true
 
 # Create Database Virtual Machine
 echo ""
@@ -369,7 +458,7 @@ az network nsg rule create \
     --direction Inbound \
     --access Allow \
     --protocol Tcp \
-    --source-address-prefixes "$APP_PRIVATE_IP" \
+    --source-address-prefixes "$BACKEND_PRIVATE_IP" \
     --destination-port-ranges 5432 \
     --output table
 
@@ -495,6 +584,8 @@ if [[ ! $REPLY =~ ^[Nn]$ ]]; then
         sudo ufw allow 22/tcp
         sudo ufw allow 80/tcp
         sudo ufw allow 443/tcp
+        sudo ufw allow 3000/tcp
+        sudo ufw allow 9090/tcp
 
         echo "Creating app directory..."
         mkdir -p ~/app
@@ -518,6 +609,7 @@ if [[ ! $REPLY =~ ^[Nn]$ ]]; then
     echo "Installing PostgreSQL on DB VM"
     echo "=========================================="
 
+    # shellcheck disable=SC2087
     ssh -o StrictHostKeyChecking=no "$ADMIN_USERNAME@$DB_PUBLIC_IP" << ENDSSH
         set -e
         echo "Updating package index..."
@@ -620,6 +712,9 @@ else
     echo "$DB_NAME" | gh secret set DB_NAME
     echo "$DB_USER" | gh secret set DB_USER
     echo "$DB_PASSWORD" | gh secret set DB_PASSWORD
+    # Set backend host/port so deploy workflow can point nginx at the correct backend
+    echo "$BACKEND_PRIVATE_IP" | gh secret set BACKEND_HOST
+    echo "1010" | gh secret set BACKEND_PORT
     
     echo -e "${GREEN}✅ GitHub secrets set successfully${NC}"
 fi

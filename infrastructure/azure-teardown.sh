@@ -31,6 +31,27 @@ RESOURCE_GROUP="recipe-cookbook-rg"
 # Non-interactive mode: set AUTO_CONFIRM=1 to skip prompts
 AUTO_CONFIRM=${AUTO_CONFIRM:-0}
 
+# By default preserve static networking resources (public IPs, NICs, VNet).
+# Use --delete-static to also delete NICs and public IPs.
+DELETE_STATIC=${DELETE_STATIC:-0}
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --delete-static)
+            DELETE_STATIC=1
+            shift
+            ;;
+        --help|-h)
+            echo "Usage: $0 [--delete-static]"
+            echo "  --delete-static   Also delete NICs and public IPs (dangerous)"
+            exit 0
+            ;;
+        *)
+            shift
+            ;;
+    esac
+done
+
 # Helper: retry a command with backoff
 retry_cmd() {
     local max_attempts=${1:-3}
@@ -176,6 +197,9 @@ echo ""
 echo "Network Interfaces:"
 az network nic list --resource-group "$RESOURCE_GROUP" --query "[].name" -o tsv
 echo ""
+echo "Public IPs:"
+az network public-ip list --resource-group "$RESOURCE_GROUP" --query "[].name" -o tsv
+echo ""
 echo "Network Security Groups:"
 az network nsg list --resource-group "$RESOURCE_GROUP" --query "[].name" -o tsv
 echo ""
@@ -187,6 +211,11 @@ echo ""
 # Confirmation prompt (support AUTO_CONFIRM)
 echo -e "${RED}⚠️  WARNING: This will permanently delete all VMs, disks, NICs, NSGs, and storage in '$RESOURCE_GROUP'${NC}"
 echo -e "${YELLOW}Public IPs and VNet will be preserved for static IPs.${NC}"
+if [ "$DELETE_STATIC" -eq 1 ]; then
+    echo -e "${YELLOW}--delete-static provided: NICs and Public IPs will be deleted.${NC}"
+else
+    echo -e "${YELLOW}By default NICs and Public IPs are preserved. Use --delete-static to remove them.${NC}"
+fi
 echo ""
 if [ "$AUTO_CONFIRM" -eq 1 ]; then
     echo "AUTO_CONFIRM=1: skipping interactive prompts and proceeding."
@@ -246,6 +275,10 @@ done
 
 # Delete NICs
 for nicId in $(az network nic list --resource-group "$RESOURCE_GROUP" --query "[].id" -o tsv); do
+    if [ "$DELETE_STATIC" -eq 0 ]; then
+        echo "Skipping NIC deletion (preserving NICs for static private IPs): $nicId"
+        continue
+    fi
     echo "Deleting NIC resource: $nicId"
     delete_by_id "$nicId" || echo "Failed to delete nic $nicId"
 done
@@ -261,6 +294,15 @@ for saId in $(az storage account list --resource-group "$RESOURCE_GROUP" --query
     echo "Deleting Storage Account resource: $saId"
     delete_by_id "$saId" || echo "Failed to delete storage account $saId"
 done
+
+# Optionally delete Public IPs if requested
+if [ "$DELETE_STATIC" -eq 1 ]; then
+    echo "Deleting Public IP resources as requested (--delete-static)..."
+    for pipId in $(az network public-ip list --resource-group "$RESOURCE_GROUP" --query "[].id" -o tsv); do
+        echo "Deleting Public IP: $pipId"
+        delete_by_id "$pipId" || echo "Failed to delete public ip $pipId"
+    done
+fi
 
 echo -e "${GREEN}✅ Resource deletion complete (static IPs and VNet preserved)${NC}"
 echo ""

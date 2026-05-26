@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title><%= yield_content :title %></title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <div class="page-shell">
+        <header class="panel panel-header">
+            <h1>🍳 AWESOME RECIPE COOKBOOK 🍳</h1>
+        </header>
+
+        <nav class="panel panel-nav">
+            <a href="/" class="nav-link">🏠 HOME</a>
+        </nav>
+
+        <main class="panel panel-content">
+            <%= yield %>
+        </main>
+
+        <section class="panel panel-swagger">
+            <a href="/apidocs" class="swagger-link">
+                <span class="swagger-button">📘 OPEN SWAGGER</span>
+            </a>
+        </section>
+
+        <footer class="panel panel-footer">
+            <p class="ticker">✨ Welcome to the best recipe site on the World Wide Web! ✨</p>
+        </footer>
+    </div>
+</body>
+</html>

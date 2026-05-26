@@ -1,0 +1,48 @@
+<% content_for :title do %><%= recipe['title'] %> - Recipe Cookbook<% end %>
+
+<h2 class="page-title">🍽️ <%= recipe['title'] %> 🍽️</h2>
+
+<section class="detail-panel detail-meta">
+    <p>⏰ <strong>Cooking Time:</strong> <%= recipe['time_minutes'] %> minutes</p>
+    <p>💰 <strong>Estimated Price:</strong> $<%= recipe['price'] %></p>
+    <% if recipe['link'] && !recipe['link'].empty? %>
+    <p>🔗 <strong>Link:</strong> <a href="<%= recipe['link'] %>"><%= recipe['link'] %></a></p>
+    <% end %>
+    <p>
+        🏷️ <strong>Tags:</strong>
+        <% recipe['tags'].each_with_index do |tag, index| %>
+            <span class="tag-name"><strong><%= tag['name'] %></strong></span><%= index < recipe['tags'].length - 1 ? ', ' : '' %>
+        <% end %>
+    </p>
+</section>
+
+<section class="detail-panel detail-ingredients">
+    <h3>🥕 INGREDIENTS 🥕</h3>
+    <ul>
+        <% recipe['ingredients'].each do |ingredient| %>
+        <li>
+            <strong><%= ingredient['amount'] %> <%= ingredient['unit'] %></strong> - <%= ingredient['name'] %>
+        </li>
+        <% end %>
+    </ul>
+</section>
+
+<section class="detail-panel detail-instructions">
+    <h3>👨‍🍳 COOKING INSTRUCTIONS 👨‍🍳</h3>
+    <% if recipe['description'] && !recipe['description'].empty? %>
+        <% steps = recipe['description'].split("\n\n") %>
+        <% steps.each do |step| %>
+            <% if !step.strip.empty? %>
+            <p class="instruction-step">
+                <strong><%= step %></strong>
+            </p>
+            <% end %>
+        <% end %>
+    <% else %>
+        <p>No instructions available.</p>
+    <% end %>
+</section>
+
+<p class="back-link-wrap">
+    <a href="/" class="back-link">⬅️ BACK TO HOME</a>
+</p>
