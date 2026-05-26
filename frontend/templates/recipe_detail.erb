@@ -1,96 +1,48 @@
 <% content_for :title do %><%= recipe['title'] %> - Recipe Cookbook<% end %>
 
-<center>
-    <h2>
-        <font face="Comic Sans MS" color="#FF0066">
-            🍽️ <%= recipe['title'] %> 🍽️
-        </font>
-    </h2>
-</center>
+<h2 class="page-title">🍽️ <%= recipe['title'] %> 🍽️</h2>
 
-<table width="100%" border="3" cellpadding="15" cellspacing="0" bgcolor="#CCFFCC">
-    <tr>
-        <td>
-            <font face="Arial" size="3" color="#000000">
-                ⏰ <b>Cooking Time:</b> <%= recipe['time_minutes'] %> minutes<br>
-                💰 <b>Estimated Price:</b> $<%= recipe['price'] %><br>
-                <% if recipe['link'] && !recipe['link'].empty? %>
-                🔗 <b>Link:</b> <a href="<%= recipe['link'] %>"><%= recipe['link'] %></a><br>
-                <% end %>
-                🏷️ <b>Tags:</b>
-                <% recipe['tags'].each_with_index do |tag, index| %>
-                    <font color="#FF0066"><b><%= tag['name'] %></b></font><%= index < recipe['tags'].length - 1 ? ', ' : '' %>
-                <% end %>
-            </font>
-        </td>
-    </tr>
-</table>
+<section class="detail-panel detail-meta">
+    <p>⏰ <strong>Cooking Time:</strong> <%= recipe['time_minutes'] %> minutes</p>
+    <p>💰 <strong>Estimated Price:</strong> $<%= recipe['price'] %></p>
+    <% if recipe['link'] && !recipe['link'].empty? %>
+    <p>🔗 <strong>Link:</strong> <a href="<%= recipe['link'] %>"><%= recipe['link'] %></a></p>
+    <% end %>
+    <p>
+        🏷️ <strong>Tags:</strong>
+        <% recipe['tags'].each_with_index do |tag, index| %>
+            <span class="tag-name"><strong><%= tag['name'] %></strong></span><%= index < recipe['tags'].length - 1 ? ', ' : '' %>
+        <% end %>
+    </p>
+</section>
 
-<br>
+<section class="detail-panel detail-ingredients">
+    <h3>🥕 INGREDIENTS 🥕</h3>
+    <ul>
+        <% recipe['ingredients'].each do |ingredient| %>
+        <li>
+            <strong><%= ingredient['amount'] %> <%= ingredient['unit'] %></strong> - <%= ingredient['name'] %>
+        </li>
+        <% end %>
+    </ul>
+</section>
 
-<table width="100%" border="3" cellpadding="15" cellspacing="0" bgcolor="#FFCCFF">
-    <tr>
-        <td>
-            <center>
-                <font face="Comic Sans MS" size="4" color="#0000FF">
-                    <b>🥕 INGREDIENTS 🥕</b>
-                </font>
-            </center>
-            <br>
-            <font face="Arial" size="3" color="#000000">
-                <ul>
-                    <% recipe['ingredients'].each do |ingredient| %>
-                    <li>
-                        <b><%= ingredient['amount'] %> <%= ingredient['unit'] %></b> - <%= ingredient['name'] %>
-                    </li>
-                    <% end %>
-                </ul>
-            </font>
-        </td>
-    </tr>
-</table>
+<section class="detail-panel detail-instructions">
+    <h3>👨‍🍳 COOKING INSTRUCTIONS 👨‍🍳</h3>
+    <% if recipe['description'] && !recipe['description'].empty? %>
+        <% steps = recipe['description'].split("\n\n") %>
+        <% steps.each do |step| %>
+            <% if !step.strip.empty? %>
+            <p class="instruction-step">
+                <strong><%= step %></strong>
+            </p>
+            <% end %>
+        <% end %>
+    <% else %>
+        <p>No instructions available.</p>
+    <% end %>
+</section>
 
-<br>
-
-<table width="100%" border="3" cellpadding="15" cellspacing="0" bgcolor="#CCFFFF">
-    <tr>
-        <td>
-            <center>
-                <font face="Comic Sans MS" size="4" color="#0000FF">
-                    <b>👨‍🍳 COOKING INSTRUCTIONS 👨‍🍳</b>
-                </font>
-            </center>
-            <br>
-            <font face="Arial" size="3" color="#000000">
-                <% if recipe['description'] && !recipe['description'].empty? %>
-                    <% steps = recipe['description'].split("\n\n") %>
-                    <% steps.each do |step| %>
-                        <% if !step.strip.empty? %>
-                        <p style="line-height: 1.6;">
-                            <b><%= step %></b>
-                        </p>
-                        <% end %>
-                    <% end %>
-                <% else %>
-                    <p>No instructions available.</p>
-                <% end %>
-            </font>
-        </td>
-    </tr>
-</table>
-
-<br>
-
-<center>
-    <a href="/">
-        <table border="3" cellpadding="10" bgcolor="#00FF00">
-            <tr>
-                <td>
-                    <font face="Arial" size="4" color="#000000">
-                        <b>⬅️ BACK TO HOME</b>
-                    </font>
-                </td>
-            </tr>
-        </table>
-    </a>
-</center>
+<p class="back-link-wrap">
+    <a href="/" class="back-link">⬅️ BACK TO HOME</a>
+</p>

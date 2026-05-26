@@ -1,53 +1,28 @@
 <% content_for :title do %>Recipe Cookbook - Home<% end %>
 
-<center>
-    <h2>
-        <font face="Comic Sans MS" color="#FF0066">
-            📖 Browse Our Amazing Recipes! 📖
-        </font>
-    </h2>
-</center>
+<h2 class="page-title">📖 Browse Our Amazing Recipes! 📖</h2>
 
-<hr color="#FF00FF" size="5">
+<hr>
 
 <% recipes.each do |recipe| %>
-<table width="100%" border="3" cellpadding="10" cellspacing="0" bgcolor="#FFFF99" style="margin-bottom: 20px;">
-    <tr>
-        <td width="70%">
-            <font face="Arial" size="5" color="#0000FF">
-                <b><%= recipe['title'] %></b>
-            </font>
-            <br><br>
-            <font face="Arial" size="3" color="#000000">
-                ⏰ <b>Time:</b> <%= recipe['time_minutes'] %> minutes<br>
-                💰 <b>Price:</b> $<%= recipe['price'] %><br>
-                🏷️ <b>Tags:</b>
-                <% recipe['tags'].each_with_index do |tag, index| %>
-                    <font color="#FF0066"><%= tag['name'] %></font><%= index < recipe['tags'].length - 1 ? ', ' : '' %>
-                <% end %>
-            </font>
-        </td>
-        <td width="30%" align="center" valign="middle">
-            <a href="/recipes/<%= recipe['id'] %>/">
-                <font face="Arial" size="4" color="#FFFFFF">
-                    <table border="2" cellpadding="10" bgcolor="#FF0066">
-                        <tr>
-                            <td>
-                                <b>VIEW RECIPE</b>
-                            </td>
-                        </tr>
-                    </table>
-                </font>
-            </a>
-        </td>
-    </tr>
-</table>
+<article class="recipe-card">
+    <div class="recipe-card-main">
+        <h3 class="recipe-title"><%= recipe['title'] %></h3>
+        <p>⏰ <strong>Time:</strong> <%= recipe['time_minutes'] %> minutes</p>
+        <p>💰 <strong>Price:</strong> $<%= recipe['price'] %></p>
+        <p>
+            🏷️ <strong>Tags:</strong>
+            <% recipe['tags'].each_with_index do |tag, index| %>
+                <span class="tag-name"><%= tag['name'] %></span><%= index < recipe['tags'].length - 1 ? ', ' : '' %>
+            <% end %>
+        </p>
+    </div>
+    <div class="recipe-card-action">
+        <a href="/recipes/<%= recipe['id'] %>/" class="cta-button">VIEW RECIPE</a>
+    </div>
+</article>
 <% end %>
 
 <% if recipes.empty? %>
-<center>
-    <font face="Comic Sans MS" size="4" color="#FF0000">
-        <b>No recipes found! 😢</b>
-    </font>
-</center>
+<p class="empty-state">No recipes found! 😢</p>
 <% end %>
