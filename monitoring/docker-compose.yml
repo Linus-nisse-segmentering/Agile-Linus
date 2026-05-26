@@ -32,3 +32,4 @@ services:
 networks:
   shared-monitoring:
     name: agile-linus-shared-monitoring
+    external: true
