@@ -2,6 +2,11 @@ services:
   prometheus:
     image: prom/prometheus:latest
     restart: unless-stopped
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=6h
+      - --storage.tsdb.retention.size=256MB
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
     ports:
@@ -19,6 +24,10 @@ services:
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
       - GF_SERVER_ROOT_URL=${GRAFANA_ROOT_URL:-http://localhost/grafana/}
       - GF_SERVER_SERVE_FROM_SUB_PATH=true
+      - GF_ANALYTICS_REPORTING_ENABLED=false
+      - GF_ANALYTICS_CHECK_FOR_UPDATES=false
+      - GF_ANALYTICS_CHECK_FOR_PLUGIN_UPDATES=false
+      - GF_LOG_LEVEL=warn
     volumes:
       - ./grafana/grafana.ini:/etc/grafana/grafana.ini:ro
       - ./grafana/provisioning:/etc/grafana/provisioning:ro
