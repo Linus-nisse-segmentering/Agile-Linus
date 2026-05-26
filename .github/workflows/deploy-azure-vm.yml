@@ -6,6 +6,7 @@ on:
       - main
       - test-deploy
       - devtest-workflow
+      - unstuck-test-deploy
   workflow_dispatch:
 
 permissions:
@@ -13,7 +14,10 @@ permissions:
   packages: write
 
 concurrency:
-  group: deploy-azure-vm
+  # Make concurrency group specific to the branch/ref so runs on other
+  # branches don't block each other. Uses `github.ref_name` to avoid
+  # including the full `refs/heads/` prefix in the group name.
+  group: deploy-azure-vm-${{ github.ref_name }}
   cancel-in-progress: true
 
 env:
