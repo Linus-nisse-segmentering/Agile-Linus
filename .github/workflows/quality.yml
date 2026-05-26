@@ -15,6 +15,7 @@ jobs:
       DB_NAME: recipe_cookbook
       DB_USER: recipe_user
       DB_PASSWORD: recipe_pass
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
     services:
       postgres:
         image: postgres:15-alpine
@@ -33,6 +34,8 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
@@ -56,10 +59,19 @@ jobs:
           DB_NAME: ${{ env.DB_NAME }}
           DB_USER: ${{ env.DB_USER }}
           DB_PASSWORD: ${{ env.DB_PASSWORD }}
-        run: ruby db/migrate_sqlite_to_postgres.rb
+        run: ruby backend/database/migrate_sqlite_to_postgres.rb
 
       - name: Lint with RuboCop
         run: bundle exec rubocop
+        working-directory: backend
 
       - name: Run RSpec test suite
         run: bundle exec rspec --format progress
+        working-directory: backend
+
+      - name: SonarCloud Scan
+        if: env.SONAR_TOKEN != ''
+        uses: SonarSource/sonarqube-scan-action@v7
+        with:
+          args: >
+            -Dsonar.qualitygate.wait=true
