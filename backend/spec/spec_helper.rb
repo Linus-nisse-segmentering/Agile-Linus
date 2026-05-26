@@ -1,6 +1,9 @@
 # frozen_string_literal: true
 
 require 'simplecov'
+require 'simplecov_json_formatter'
+SimpleCov.coverage_dir('coverage')
+SimpleCov.formatter = SimpleCov::Formatter::JSONFormatter
 SimpleCov.start do
   add_filter '/spec/'
 end

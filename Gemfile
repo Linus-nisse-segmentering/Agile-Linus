@@ -27,6 +27,7 @@ group :development, :test do
   gem 'rubocop', '~> 1.70', require: false
   gem 'rubocop-performance', require: false
   gem 'simplecov', '~> 0.22', require: false
+  gem 'simplecov_json_formatter', '~> 0.1', require: false
 end
 
 gem 'rackup', '~> 2.3'
