@@ -156,7 +156,7 @@ docker compose -f docker-compose.prod.yaml up -d
 ## Database Configuration
 
 The app uses PostgreSQL. These environment variables configure the connection:
-
+ 
 - `DB_HOST` (default: `localhost`)
 - `DB_PORT` (default: `5432`)
 - `DB_NAME` (default: `recipe_cookbook`)
