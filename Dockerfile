@@ -22,12 +22,8 @@ RUN bundle config set --local without 'development' && \
     BUNDLE_GEM__HTTP__PERSISTENT=1 bundle install
 
 # Copy application files
-COPY app.rb .
-COPY config.ru .
-COPY yml/ ./yml/
-COPY db/ ./db/
-COPY static/ ./static/
-COPY views/ ./views/
+COPY backend/ ./backend/
+COPY frontend/ ./frontend/
 
 # Expose port
 EXPOSE 1010
@@ -36,4 +32,4 @@ EXPOSE 1010
 ENV RACK_ENV=production
 
 # Run the application with Puma
-CMD ["bundle", "exec", "puma", "-b", "tcp://0.0.0.0:1010"]
+CMD ["bundle", "exec", "puma", "-b", "tcp://0.0.0.0:1010", "backend/config.ru"]

@@ -11,7 +11,9 @@ require 'prometheus/client/formats/text'
 # Configure Sinatra
 set :port, 1010
 set :bind, '0.0.0.0'
-set :public_folder, 'static'
+set :root, File.expand_path('..', __dir__)
+set :public_folder, File.join(settings.root, 'frontend/public')
+set :views, File.join(settings.root, 'frontend/templates')
 
 REGISTRY = Prometheus::Client.registry
 HTTP_REQUESTS_TOTAL = REGISTRY.counter(
@@ -111,14 +113,14 @@ def init_db
   db = db_connection
 
   # Create tables
-  db.exec(File.read('db/schema.pg.sql'))
+  db.exec(File.read(File.join(settings.root, 'backend/database/schema.pg.sql')))
 
   # Check if we need to seed
   recipe_count = db_first_value(db, 'SELECT COUNT(*) FROM recipes')
 
   if recipe_count.to_i.zero?
     puts 'Seeding database...'
-    db.exec(File.read('db/seeds.sql'))
+    db.exec(File.read(File.join(settings.root, 'backend/database/seeds.sql')))
   end
 
   db.close
@@ -183,7 +185,7 @@ end
 # Serve OpenAPI schema
 get '/api/schema' do
   content_type 'application/yaml'
-  File.read('yml/api-schema.yaml')
+  File.read(File.join(settings.root, 'backend/openapi/api-schema.yaml'))
 end
 
 # Swagger UI endpoint

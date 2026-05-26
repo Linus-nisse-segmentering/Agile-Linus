@@ -39,9 +39,9 @@ services:
       db:
         condition: service_healthy
     volumes:
-      - ./db:/app/db
-      - ./static:/app/static
-      - ./views:/app/views
+      - ./backend/database:/app/backend/database
+      - ./frontend/public:/app/frontend/public
+      - ./frontend/templates:/app/frontend/templates
     networks:
       - shared-monitoring
     restart: unless-stopped

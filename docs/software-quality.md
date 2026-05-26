@@ -25,7 +25,7 @@ bundle exec rspec
 
 - Linter: RuboCop
 - Config entry point: `.rubocop.yml`
-- Extended rules: `yml/.rubocop.yml`
+- Extended rules: `backend/openapi/.rubocop.yml`
 
 Run locally:
 
