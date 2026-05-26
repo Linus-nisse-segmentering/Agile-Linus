@@ -23,9 +23,11 @@ Formålet med denne README er at gøre projektet let at forstå, starte og arbej
 9. Database
 10. Miljøvariabler
 11. Test og kodekvalitet
-12. Deployment
-13. Fejlfinding
-14. Kendte begrænsninger
+12. Kørsel på Azure VM
+13. Fork og GitHub Secrets (til CI/CD)
+14. Deployment
+15. Fejlfinding
+16. Kendte begrænsninger
 
 ## Projektoverblik
 
@@ -269,6 +271,61 @@ CI workflows ligger i:
 
 - `.github/workflows/quality.yml`
 - `.github/workflows/deploy-azure-vm.yml`
+
+## Kørsel på Azure VM
+
+Når I vil køre projektet på en VM (fx til demo/eksamen), kan I bruge dette flow:
+
+1. Opret en Linux VM i Azure.
+2. Åbn porte i NSG/firewall:
+- `80` (app via nginx)
+- `3000` (Grafana, hvis brugt)
+- `9090` (Prometheus, hvis brugt)
+3. SSH ind på VM og clon repo.
+4. Kør setup script:
+```bash
+chmod +x infrastructure/azure-setup.sh
+./infrastructure/azure-setup.sh
+```
+5. Start produktion-stack:
+```bash
+docker compose -f docker-compose.prod.yaml up -d --build
+```
+6. Verificer at appen svarer:
+```bash
+curl -I http://<vm-public-ip>
+```
+
+Hvis I også vil have monitorering:
+
+```bash
+docker compose -f monitoring/docker-compose.yml up -d
+```
+
+## Fork og GitHub Secrets (til CI/CD)
+
+Ja, hvis I deployer fra jeres egen fork, skal I typisk selv sætte secrets i jeres fork-repository.
+
+På GitHub i jeres fork:
+
+`Settings` -> `Secrets and variables` -> `Actions` -> `New repository secret`
+
+Typiske secrets til VM-deploy workflow:
+
+- `AZURE_VM_HOST` (offentlig IP eller DNS)
+- `AZURE_VM_USER` (SSH-bruger)
+- `AZURE_VM_SSH_KEY` (privat SSH nøgle, hele indholdet)
+- `AZURE_VM_PORT` (ofte `22`)
+
+Hvis quality-pipeline bruger SonarCloud:
+
+- `SONAR_TOKEN`
+
+Vigtigt:
+
+- Secrets fra original-repo følger ikke automatisk med til en fork.
+- Workflows i fork virker først, når secrets er sat korrekt.
+- Kør gerne en test-deploy fra en feature-branch før demo-dagen.
 
 ## Deployment
 
