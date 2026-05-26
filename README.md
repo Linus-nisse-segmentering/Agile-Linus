@@ -59,3 +59,59 @@ Stop igen med:
 ```bash
 docker compose down
 ```
+
+## Installation og lokale krav
+
+For at kunne køre projektet anbefales:
+
+- Docker Desktop (eller Docker Engine + Compose plugin).
+- Git.
+- En terminal (`zsh`, `bash` eller PowerShell).
+
+Valgfrit til lokal udvikling uden Docker:
+
+- Ruby `3.3.x` (se `.ruby-version`).
+- Bundler.
+- PostgreSQL.
+
+## Kørsel med Docker
+
+### Standard (udvikling på egen maskine)
+
+Start:
+
+```bash
+docker compose up --build
+```
+
+Kør i baggrunden:
+
+```bash
+docker compose up -d --build
+```
+
+Se logs:
+
+```bash
+docker compose logs -f
+```
+
+Stop stack:
+
+```bash
+docker compose down
+```
+
+### Produktion på VM (Azure)
+
+Projektet indeholder også en produktions-compose fil:
+
+```bash
+docker compose -f docker-compose.prod.yaml up -d
+```
+
+Stop:
+
+```bash
+docker compose -f docker-compose.prod.yaml down
+```
