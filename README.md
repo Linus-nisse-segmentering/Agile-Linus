@@ -1,6 +1,7 @@
 # Recipe Cookbook - Ruby/Sinatra Edition
 
 ![Quality Pipeline](https://github.com/Linus-nisse-segmentering/Agile-Linus/actions/workflows/quality.yml/badge.svg)
+![SonarCloud](https://sonarcloud.io/api/project_badges/measure?project=Linus-nisse-segmentering_Agile-Linus&metric=alert_status)
 ![CD Pipeline](https://github.com/Linus-nisse-segmentering/Agile-Linus/actions/workflows/deploy-azure-vm.yml/badge.svg)
 ![Linted with RuboCop](https://img.shields.io/badge/lint-RuboCop-black)
 ![Tested with RSpec](https://img.shields.io/badge/test-RSpec-red)
@@ -187,7 +188,10 @@ If the Postgres database already contains data, set `PG_CLEAR=true` to truncate 
 - Test framework: RSpec + Rack::Test
 - Linting: RuboCop
 - CI quality pipeline: `.github/workflows/quality.yml`
+- Sonar code-quality scan: `.github/workflows/quality.yml`
 - Shared Git hooks: `.githooks/pre-commit`
+
+The quality pipeline now runs RuboCop, RSpec, and a Sonar scan. Add a `SONAR_TOKEN` repository secret before enabling the scan in GitHub Actions.
 
 Run checks locally:
 

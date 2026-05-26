@@ -8,6 +8,7 @@ This project uses an automated quality gate covering tests, linting, and local p
 - Keep code style and maintainability consistent with RuboCop.
 - Catch obvious issues before commit with shared Git hooks.
 - Verify quality in CI for every pull request and every push to `main`.
+- Surface Sonar code-quality issues alongside linting and tests.
 
 ## Test Framework
 
@@ -42,8 +43,11 @@ Pipeline steps:
 1. Install dependencies with bundler cache.
 2. Run RuboCop linting.
 3. Run the RSpec test suite.
+4. Run Sonar analysis when `SONAR_TOKEN` is configured.
 
 A pull request is expected to pass this pipeline before merge.
+
+Sonar project settings live in `sonar-project.properties`. The scan uses the repository root as the analysis base, excludes generated and documentation folders, and imports SimpleCov coverage from `coverage/.resultset.json`.
 
 ## Shared Git Hooks
 
