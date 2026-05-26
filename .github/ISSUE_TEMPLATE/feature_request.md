@@ -20,4 +20,4 @@ Implementer filtre i frontend med dropdown-menuer og søgefelt. Backend API’et
 Et alternativ kunne være kun at implementere tekstsøgning uden avancerede filtre for at holde løsningen mere simpel.
 
 ## Yderligere information
-Funktionen kan designes med inspiration fra populære recipe-apps som f.eks. Mealime eller Tasty.
+Funktionen kan designes med inspiration fra populære recipe-apps som f.
