@@ -218,3 +218,109 @@ docker compose -f monitoring/docker-compose.yml down
 ```bash
 curl http://localhost/api/recipe/recipes/
 ```
+
+## Database
+
+Projektet bruger PostgreSQL som primær database.
+
+Kerne-tabeller:
+
+- `users`
+- `recipes`
+- `ingredients`
+- `tags`
+- `recipe_ingredients`
+- `recipe_tags`
+
+Schema ligger i `db/schema.pg.sql`, og seed data ligger i `db/seeds.sql`.
+
+Ved opstart med `DB_INIT=true` opretter appen schema og seeder data, hvis databasen er tom.
+
+## Miljøvariabler
+
+Vigtigste variabler til appen:
+
+- `DB_HOST` (default: `localhost`)
+- `DB_PORT` (default: `5432`)
+- `DB_NAME` (default: `recipe_cookbook`)
+- `DB_USER` (default: `recipe_user`)
+- `DB_PASSWORD` (default: `recipe_pass`)
+- `DB_SSLMODE` (default: `prefer`)
+- `DB_INIT` (`true`/`false`, default: `false` i kode)
+- `DATABASE_URL` (overstyrer de øvrige DB-felter hvis sat)
+
+## Test og kodekvalitet
+
+Kør lokalt:
+
+```bash
+bundle install
+bundle exec rubocop
+bundle exec rspec
+```
+
+Git hooks kan sættes op med:
+
+```powershell
+./scripts/setup-git-hooks.ps1
+```
+
+CI workflows ligger i:
+
+- `.github/workflows/quality.yml`
+- `.github/workflows/deploy-azure-vm.yml`
+
+## Deployment
+
+Deployment-strategien er container-baseret:
+
+- Nginx modtager trafik på `:80`.
+- Nginx videresender til Sinatra app på intern port `1010`.
+- PostgreSQL kører i separat service.
+
+Azure helper scripts:
+
+- `infrastructure/azure-setup.sh`
+- `infrastructure/azure-teardown.sh`
+
+Læs mere i:
+
+- `docs/deployment-strategy.md`
+- `docs/branching-strategy.md`
+- `docs/software-quality.md`
+- `docs/issue-management.md`
+
+## Fejlfinding
+
+Hvis appen ikke svarer på `http://localhost`:
+
+1. Tjek containere:
+```bash
+docker compose ps
+```
+2. Tjek logs:
+```bash
+docker compose logs -f app nginx db
+```
+3. Tjek metrics endpoint direkte mod app-container:
+```bash
+docker compose exec app ruby -e "require 'net/http'; puts Net::HTTP.get(URI('http://127.0.0.1:1010/metrics'))[0..200]"
+```
+
+Hvis databasen er i dårlig tilstand lokalt:
+
+```bash
+docker compose down -v
+docker compose up --build
+```
+
+## Kendte begrænsninger
+
+- Flere API endpoints er demo/stub-lignende og gemmer ikke altid ændringer permanent.
+- Auth/token-flow er ikke fuldt produktionsklart.
+- Input-validering er begrænset flere steder.
+- Appen er god til undervisning og demo, men kræver hardening til produktion.
+
+## License
+
+Projektet er lavet til uddannelsesformål.
