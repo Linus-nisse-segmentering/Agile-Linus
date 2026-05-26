@@ -59,15 +59,12 @@ jobs:
           PGPASSWORD: ${{ env.DB_PASSWORD }}
         run: psql -h localhost -U ${{ env.DB_USER }} -d postgres -c '\l'
 
-      - name: Migrate SQLite -> Postgres
+      - name: Initialize Postgres schema and seed data
         env:
-          DB_HOST: ${{ env.DB_HOST }}
-          DB_PORT: ${{ env.DB_PORT }}
-          DB_NAME: ${{ env.DB_NAME }}
-          DB_USER: ${{ env.DB_USER }}
-          DB_PASSWORD: ${{ env.DB_PASSWORD }}
-          PG_CLEAR: true
-        run: ruby backend/database/migrate_sqlite_to_postgres.rb
+          PGPASSWORD: ${{ env.DB_PASSWORD }}
+        run: |
+          psql -h ${{ env.DB_HOST }} -p ${{ env.DB_PORT }} -U ${{ env.DB_USER }} -d ${{ env.DB_NAME }} -v ON_ERROR_STOP=1 -f backend/database/schema.pg.sql
+          psql -h ${{ env.DB_HOST }} -p ${{ env.DB_PORT }} -U ${{ env.DB_USER }} -d ${{ env.DB_NAME }} -v ON_ERROR_STOP=1 -f backend/database/seeds.sql
 
       - name: Lint with RuboCop
         run: bundle exec rubocop
