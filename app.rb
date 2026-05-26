@@ -250,6 +250,8 @@ get '/recipes/:id/' do
 end
 
 def swagger_ui_html
+  api_schema_url = request.base_url + '/api/schema'
+
   <<~HTML
     <!DOCTYPE html>
     <html lang="en">
@@ -271,7 +273,7 @@ def swagger_ui_html
       <script>
         window.onload = function() {
           window.ui = SwaggerUIBundle({
-            url: "/api/schema",
+            url: "#{api_schema_url}",
             dom_id: '#swagger-ui',
             deepLinking: true,
             presets: [
@@ -297,17 +299,19 @@ end
 # API overview
 get '/api' do
   puts 'Route invoked: GET /api'
+  base_url = request.base_url
+
   json({
-         create_user_url: 'http://localhost:3000/api/user/create/',
-         current_user_url: 'http://localhost:3000/api/user/me/',
-         user_token_url: 'http://localhost:3000/api/user/token/',
-         recipes_url: 'http://localhost:3000/api/recipe/recipes/{?ingredients,tags}',
-         recipe_url: 'http://localhost:3000/api/recipe/recipes/{id}/',
-         recipe_image_url: 'http://localhost:3000/api/recipe/recipes/{id}/upload-image/',
-         ingredients_url: 'http://localhost:3000/api/recipe/ingredients/{?assigned_only}',
-         ingredient_url: 'http://localhost:3000/api/recipe/ingredients/{id}/',
-         tags_url: 'http://localhost:3000/api/recipe/tags/{?assigned_only}',
-         tag_url: 'http://localhost:3000/api/recipe/tags/{id}/',
+         create_user_url: base_url + '/api/user/create/',
+         current_user_url: base_url + '/api/user/me/',
+         user_token_url: base_url + '/api/user/token/',
+         recipes_url: base_url + '/api/recipe/recipes/{?ingredients,tags}',
+         recipe_url: base_url + '/api/recipe/recipes/{id}/',
+         recipe_image_url: base_url + '/api/recipe/recipes/{id}/upload-image/',
+         ingredients_url: base_url + '/api/recipe/ingredients/{?assigned_only}',
+         ingredient_url: base_url + '/api/recipe/ingredients/{id}/',
+         tags_url: base_url + '/api/recipe/tags/{?assigned_only}',
+         tag_url: base_url + '/api/recipe/tags/{id}/',
        })
 end
 
