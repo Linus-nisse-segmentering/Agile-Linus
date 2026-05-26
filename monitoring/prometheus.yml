@@ -4,5 +4,6 @@ global:
 scrape_configs:
   - job_name: "backend"
     static_configs:
-      - targets: ["nginx:80"]
+      # Prometheus runs on the backend VM and shares a Docker network with the app.
+      - targets: ["app:1010"]
     metrics_path: /metrics

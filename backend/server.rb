@@ -11,7 +11,9 @@ require 'prometheus/client/formats/text'
 # Configure Sinatra
 set :port, 1010
 set :bind, '0.0.0.0'
-set :public_folder, 'static'
+set :root, File.expand_path('..', __dir__)
+set :public_folder, File.join(settings.root, 'frontend/public')
+set :views, File.join(settings.root, 'frontend/templates')
 
 REGISTRY = Prometheus::Client.registry
 HTTP_REQUESTS_TOTAL = REGISTRY.counter(
@@ -111,14 +113,14 @@ def init_db
   db = db_connection
 
   # Create tables
-  db.exec(File.read('db/schema.pg.sql'))
+  db.exec(File.read(File.join(settings.root, 'backend/database/schema.pg.sql')))
 
   # Check if we need to seed
   recipe_count = db_first_value(db, 'SELECT COUNT(*) FROM recipes')
 
   if recipe_count.to_i.zero?
     puts 'Seeding database...'
-    db.exec(File.read('db/seeds.sql'))
+    db.exec(File.read(File.join(settings.root, 'backend/database/seeds.sql')))
   end
 
   db.close
@@ -183,7 +185,7 @@ end
 # Serve OpenAPI schema
 get '/api/schema' do
   content_type 'application/yaml'
-  File.read('yml/api-schema.yaml')
+  File.read(File.join(settings.root, 'backend/openapi/api-schema.yaml'))
 end
 
 # Swagger UI endpoint
@@ -250,6 +252,18 @@ get '/recipes/:id/' do
 end
 
 def swagger_ui_html
+  api_schema_url = "#{request.base_url}/api/schema"
+
+  head = swagger_ui_head
+  body = swagger_ui_body(api_schema_url)
+
+  <<~HTML
+    #{head}
+    #{body}
+  HTML
+end
+
+def swagger_ui_head
   <<~HTML
     <!DOCTYPE html>
     <html lang="en">
@@ -264,6 +278,11 @@ def swagger_ui_html
         body { margin: 0; padding: 0; }
       </style>
     </head>
+  HTML
+end
+
+def swagger_ui_body(api_schema_url)
+  <<~HTML
     <body>
       <div id="swagger-ui"></div>
       <script src="/swagger-ui/swagger-ui-bundle.js"></script>
@@ -271,7 +290,7 @@ def swagger_ui_html
       <script>
         window.onload = function() {
           window.ui = SwaggerUIBundle({
-            url: "/api/schema",
+            url: "#{api_schema_url}",
             dom_id: '#swagger-ui',
             deepLinking: true,
             presets: [
@@ -297,17 +316,19 @@ end
 # API overview
 get '/api' do
   puts 'Route invoked: GET /api'
+  base_url = request.base_url
+
   json({
-         create_user_url: 'http://localhost:3000/api/user/create/',
-         current_user_url: 'http://localhost:3000/api/user/me/',
-         user_token_url: 'http://localhost:3000/api/user/token/',
-         recipes_url: 'http://localhost:3000/api/recipe/recipes/{?ingredients,tags}',
-         recipe_url: 'http://localhost:3000/api/recipe/recipes/{id}/',
-         recipe_image_url: 'http://localhost:3000/api/recipe/recipes/{id}/upload-image/',
-         ingredients_url: 'http://localhost:3000/api/recipe/ingredients/{?assigned_only}',
-         ingredient_url: 'http://localhost:3000/api/recipe/ingredients/{id}/',
-         tags_url: 'http://localhost:3000/api/recipe/tags/{?assigned_only}',
-         tag_url: 'http://localhost:3000/api/recipe/tags/{id}/',
+         create_user_url: "#{base_url}/api/user/create/",
+         current_user_url: "#{base_url}/api/user/me/",
+         user_token_url: "#{base_url}/api/user/token/",
+         recipes_url: "#{base_url}/api/recipe/recipes/{?ingredients,tags}",
+         recipe_url: "#{base_url}/api/recipe/recipes/{id}/",
+         recipe_image_url: "#{base_url}/api/recipe/recipes/{id}/upload-image/",
+         ingredients_url: "#{base_url}/api/recipe/ingredients/{?assigned_only}",
+         ingredient_url: "#{base_url}/api/recipe/ingredients/{id}/",
+         tags_url: "#{base_url}/api/recipe/tags/{?assigned_only}",
+         tag_url: "#{base_url}/api/recipe/tags/{id}/",
        })
 end
 

@@ -1,0 +1,222 @@
+body {
+    background-color: #CCCCCC;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect fill="%23CCCCCC" width="100" height="100"/><circle cx="50" cy="50" r="20" fill="%23DDDDDD"/></svg>');
+    margin: 0;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+}
+
+.page-shell {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.panel {
+    border: 3px solid #000000;
+    margin: 0;
+}
+
+.panel-header {
+    background: #ffcc00;
+    padding: 10px;
+    text-align: center;
+}
+
+.panel-header h1 {
+    margin: 0;
+    color: #ff0066;
+    font-family: "Comic Sans MS", Arial, sans-serif;
+}
+
+.panel-nav {
+    background: #00ccff;
+    border-top: none;
+    text-align: center;
+    padding: 8px;
+}
+
+.nav-link {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+.panel-content {
+    background: #ffffff;
+    border-top: none;
+    padding: 20px;
+}
+
+.panel-swagger {
+    background: #ffffff;
+    border-top: none;
+    padding: 10px;
+    text-align: center;
+}
+
+.panel-footer {
+    background: #00ff00;
+    border-top: none;
+    text-align: center;
+    padding: 10px;
+}
+
+.ticker {
+    margin: 0;
+    font-size: 0.9rem;
+    font-weight: 700;
+}
+
+a {
+    text-decoration: none;
+    color: #0000FF;
+}
+
+a:visited {
+    color: #800080;
+}
+
+a:hover {
+    text-decoration: underline;
+    color: #FF0000;
+}
+
+h1, h2, h3 {
+    text-shadow: 2px 2px #000000;
+}
+
+.page-title {
+    color: #ff0066;
+    font-family: "Comic Sans MS", Arial, sans-serif;
+    text-align: center;
+}
+
+hr {
+    height: 5px;
+    border: none;
+    background: #ff00ff;
+}
+
+ul {
+    list-style-type: square;
+}
+
+li {
+    margin: 10px 0;
+}
+
+p {
+    margin: 10px 0;
+}
+
+.recipe-card {
+    background: #ffff99;
+    border: 3px solid #000000;
+    margin-bottom: 20px;
+    padding: 12px;
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: center;
+}
+
+.recipe-card-main {
+    flex: 1;
+}
+
+.recipe-title {
+    color: #0000ff;
+    margin-top: 0;
+    text-shadow: none;
+}
+
+.recipe-card-action {
+    flex-shrink: 0;
+}
+
+.tag-name {
+    color: #ff0066;
+}
+
+.cta-button {
+    display: inline-block;
+    background: #ff0066;
+    color: #000000;
+    border: 2px solid #000000;
+    padding: 10px 14px;
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.empty-state {
+    color: #ff0000;
+    font-family: "Comic Sans MS", Arial, sans-serif;
+    text-align: center;
+    font-weight: 700;
+}
+
+.detail-panel {
+    border: 3px solid #000000;
+    padding: 15px;
+    margin: 0 0 16px;
+}
+
+.detail-meta {
+    background: #ccffcc;
+}
+
+.detail-ingredients {
+    background: #ffccff;
+}
+
+.detail-ingredients h3,
+.detail-instructions h3 {
+    color: #0000ff;
+    font-family: "Comic Sans MS", Arial, sans-serif;
+    text-align: center;
+    margin-top: 0;
+}
+
+.detail-instructions {
+    background: #ccffff;
+}
+
+.instruction-step {
+    line-height: 1.6;
+}
+
+.back-link-wrap {
+    text-align: center;
+}
+
+.back-link {
+    display: inline-block;
+    background: #00ff00;
+    color: #000000;
+    border: 3px solid #000000;
+    padding: 10px 14px;
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.swagger-link {
+    display: inline-block;
+}
+
+.swagger-button {
+    display: inline-block;
+    background: #ff0066;
+    color: #000000;
+    border: 3px solid #000000;
+    padding: 12px 22px;
+    font-family: Arial, sans-serif;
+    font-size: 18px;
+    font-weight: bold;
+    text-shadow: none;
+    box-shadow: 4px 4px 0 #000000;
+}
+
+.swagger-link:hover .swagger-button {
+    background: #ff3399;
+    text-decoration: none;
+}

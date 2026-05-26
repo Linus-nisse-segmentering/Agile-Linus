@@ -1,2 +1,2 @@
 inherit_from:
-  - yml/.rubocop.yml
+  - backend/openapi/.rubocop.yml

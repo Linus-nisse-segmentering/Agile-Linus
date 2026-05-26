@@ -1,0 +1,28 @@
+<% content_for :title do %>Recipe Cookbook - Home<% end %>
+
+<h2 class="page-title">📖 Browse Our Amazing Recipes! 📖</h2>
+
+<hr>
+
+<% recipes.each do |recipe| %>
+<article class="recipe-card">
+    <div class="recipe-card-main">
+        <h3 class="recipe-title"><%= recipe['title'] %></h3>
+        <p>⏰ <strong>Time:</strong> <%= recipe['time_minutes'] %> minutes</p>
+        <p>💰 <strong>Price:</strong> $<%= recipe['price'] %></p>
+        <p>
+            🏷️ <strong>Tags:</strong>
+            <% recipe['tags'].each_with_index do |tag, index| %>
+                <span class="tag-name"><%= tag['name'] %></span><%= index < recipe['tags'].length - 1 ? ', ' : '' %>
+            <% end %>
+        </p>
+    </div>
+    <div class="recipe-card-action">
+        <a href="/recipes/<%= recipe['id'] %>/" class="cta-button">VIEW RECIPE</a>
+    </div>
+</article>
+<% end %>
+
+<% if recipes.empty? %>
+<p class="empty-state">No recipes found! 😢</p>
+<% end %>

@@ -1,6 +1,7 @@
 # Recipe Cookbook - Ruby/Sinatra Edition
 
 ![Quality Pipeline](https://github.com/Linus-nisse-segmentering/Agile-Linus/actions/workflows/quality.yml/badge.svg)
+![SonarCloud](https://sonarcloud.io/api/project_badges/measure?project=Linus-nisse-segmentering_Agile-Linus&metric=alert_status)
 ![CD Pipeline](https://github.com/Linus-nisse-segmentering/Agile-Linus/actions/workflows/deploy-azure-vm.yml/badge.svg)
 ![Linted with RuboCop](https://img.shields.io/badge/lint-RuboCop-black)
 ![Tested with RSpec](https://img.shields.io/badge/test-RSpec-red)
@@ -20,39 +21,39 @@ A recipe cookbook web application built with Ruby and the Sinatra framework, fea
 - Docker
 - Docker Compose
 
-## Running the Application
+## Running on the Azure VM
 
-### Using Docker (Recommended):
+Use the production compose file on the VM host:
 
-1. Build and start the application:
 ```bash
-docker compose up --build
+docker compose -f docker-compose.prod.yaml up -d
 ```
 
-2. The application will be available at: http://localhost through the nginx reverse proxy.
+The application is served through nginx on port 80, so open:
 
-3. The app container still listens internally on port 1010 for direct container-to-container traffic.
+- App: http://<vm-public-ip>
+- API docs: http://<vm-public-ip>/apidocs
+- API schema: http://<vm-public-ip>/api/schema
 
-4. To stop the application:
+The app container still listens internally on port 1010 for container-to-container traffic.
+
+To stop the stack:
+
 ```bash
-docker compose down
+docker compose -f docker-compose.prod.yaml down
 ```
 
-### Running in detached mode (background):
-```bash
-docker compose up -d
-```
+To view logs:
 
-### View logs:
 ```bash
-docker compose logs -f
+docker compose -f docker-compose.prod.yaml logs -f
 ```
 
 ## Monitoring
 
 Prometheus scrapes the backend through nginx on a shared Docker network, and Grafana is pre-provisioned with Prometheus as its datasource.
 
-Start the monitoring stack in a second terminal:
+Start the monitoring stack on the VM in a second terminal:
 
 ```bash
 docker compose -f monitoring/docker-compose.yml up -d
@@ -73,21 +74,28 @@ When deploying to Azure VM, make sure ports 3000 and 9090 are open in the VM NSG
 
 ```
 .
-├── app.rb              # Main Sinatra application
-├── config.ru           # Rack configuration
+├── backend/
+│   ├── server.rb       # Main Sinatra backend application
+│   ├── config.ru       # Rack configuration
+│   ├── openapi/
+│   │   └── api-schema.yaml # OpenAPI schema
+│   ├── database/
+│   │   ├── schema.sql      # SQLite schema (legacy)
+│   │   ├── schema.pg.sql   # PostgreSQL schema
+│   │   ├── seeds.sql       # Seed data
+│   │   ├── setup.rb        # SQLite setup script (legacy)
+│   │   └── migrate_sqlite_to_postgres.rb # One-time migration script
+│   └── spec/
+│       ├── app_spec.rb
+│       └── spec_helper.rb
+├── frontend/
+│   ├── templates/
+│   │   ├── layout.erb      # Base layout template
+│   │   ├── home.erb        # Home page template
+│   │   └── recipe_detail.erb  # Recipe detail template
+│   └── public/
+│       └── style.css       # Stylesheet
 ├── Gemfile             # Ruby dependencies
-├── db/
-│   ├── schema.sql      # SQLite schema (legacy)
-│   ├── schema.pg.sql   # PostgreSQL schema
-│   ├── seeds.sql       # Seed data
-│   ├── setup.rb        # SQLite setup script (legacy)
-│   └── migrate_sqlite_to_postgres.rb # One-time migration script
-├── views/
-│   ├── layout.erb      # Base layout template
-│   ├── home.erb        # Home page template
-│   └── recipe_detail.erb  # Recipe detail template
-└── static/
-    └── style.css       # Stylesheet
 ├── infrastructure/
 │   ├── azure-setup.sh  # Azure VM provisioning helper
 │   └── nginx/
@@ -147,16 +155,16 @@ The application uses PostgreSQL with the following tables:
 
 ## Development
 
-The database is automatically set up when the Docker container starts. If you need to reset the database, restart the container:
+The database is automatically set up when the production stack starts on the VM. If you need to refresh the deployment on the VM, restart the production stack:
 ```bash
-docker compose down
-docker compose up --build
+docker compose -f docker-compose.prod.yaml down
+docker compose -f docker-compose.prod.yaml up -d
 ```
 
 ## Database Configuration
 
 The app uses PostgreSQL. These environment variables configure the connection:
-
+ 
 - `DB_HOST` (default: `localhost`)
 - `DB_PORT` (default: `5432`)
 - `DB_NAME` (default: `recipe_cookbook`)
@@ -177,7 +185,7 @@ DB_NAME=recipe_cookbook \
 DB_USER=recipe_user \
 DB_PASSWORD=recipe_pass \
 SQLITE_PATH=./app.db \
-ruby db/migrate_sqlite_to_postgres.rb
+ruby backend/database/migrate_sqlite_to_postgres.rb
 ```
 
 If the Postgres database already contains data, set `PG_CLEAR=true` to truncate tables before migrating.
@@ -187,7 +195,10 @@ If the Postgres database already contains data, set `PG_CLEAR=true` to truncate 
 - Test framework: RSpec + Rack::Test
 - Linting: RuboCop
 - CI quality pipeline: `.github/workflows/quality.yml`
+- Sonar code-quality scan: `.github/workflows/quality.yml`
 - Shared Git hooks: `.githooks/pre-commit`
+
+The quality pipeline now runs RuboCop, RSpec, and a Sonar scan. Add a `SONAR_TOKEN` repository secret before enabling the scan in GitHub Actions.
 
 Run checks locally:
 
