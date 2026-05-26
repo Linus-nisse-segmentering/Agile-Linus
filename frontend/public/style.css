@@ -141,7 +141,7 @@ p {
 .cta-button {
     display: inline-block;
     background: #ff0066;
-    color: #ffffff;
+    color: #000000;
     border: 2px solid #000000;
     padding: 10px 14px;
     font-size: 1rem;
@@ -206,7 +206,7 @@ p {
 .swagger-button {
     display: inline-block;
     background: #ff0066;
-    color: #ffffff;
+    color: #000000;
     border: 3px solid #000000;
     padding: 12px 22px;
     font-family: Arial, sans-serif;
