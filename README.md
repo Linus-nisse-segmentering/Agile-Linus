@@ -20,39 +20,39 @@ A recipe cookbook web application built with Ruby and the Sinatra framework, fea
 - Docker
 - Docker Compose
 
-## Running the Application
+## Running on the Azure VM
 
-### Using Docker (Recommended):
+Use the production compose file on the VM host:
 
-1. Build and start the application:
 ```bash
-docker compose up --build
+docker compose -f docker-compose.prod.yaml up -d
 ```
 
-2. The application will be available at: http://localhost through the nginx reverse proxy.
+The application is served through nginx on port 80, so open:
 
-3. The app container still listens internally on port 1010 for direct container-to-container traffic.
+- App: http://<vm-public-ip>
+- API docs: http://<vm-public-ip>/apidocs
+- API schema: http://<vm-public-ip>/api/schema
 
-4. To stop the application:
+The app container still listens internally on port 1010 for container-to-container traffic.
+
+To stop the stack:
+
 ```bash
-docker compose down
+docker compose -f docker-compose.prod.yaml down
 ```
 
-### Running in detached mode (background):
-```bash
-docker compose up -d
-```
+To view logs:
 
-### View logs:
 ```bash
-docker compose logs -f
+docker compose -f docker-compose.prod.yaml logs -f
 ```
 
 ## Monitoring
 
 Prometheus scrapes the backend through nginx on a shared Docker network, and Grafana is pre-provisioned with Prometheus as its datasource.
 
-Start the monitoring stack in a second terminal:
+Start the monitoring stack on the VM in a second terminal:
 
 ```bash
 docker compose -f monitoring/docker-compose.yml up -d
@@ -147,10 +147,10 @@ The application uses PostgreSQL with the following tables:
 
 ## Development
 
-The database is automatically set up when the Docker container starts. If you need to reset the database, restart the container:
+The database is automatically set up when the production stack starts on the VM. If you need to refresh the deployment on the VM, restart the production stack:
 ```bash
-docker compose down
-docker compose up --build
+docker compose -f docker-compose.prod.yaml down
+docker compose -f docker-compose.prod.yaml up -d
 ```
 
 ## Database Configuration
