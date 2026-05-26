@@ -26,7 +26,7 @@ jobs:
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U recipe_user"
+          --health-cmd "pg_isready -U recipe_user -d recipe_cookbook"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -53,6 +53,11 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y postgresql-client
           until pg_isready -h localhost -p 5432 -U ${{ env.DB_USER }} -d ${{ env.DB_NAME }}; do sleep 1; done
+
+      - name: List Postgres databases
+        env:
+          PGPASSWORD: ${{ env.DB_PASSWORD }}
+        run: psql -h localhost -U ${{ env.DB_USER }} -d postgres -c '\l'
 
       - name: Migrate SQLite -> Postgres
         env:
