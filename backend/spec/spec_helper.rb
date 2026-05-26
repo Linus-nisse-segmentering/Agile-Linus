@@ -13,7 +13,7 @@ FileUtils.mkdir_p(File.dirname(TEST_DB_PATH))
 FileUtils.rm_f(TEST_DB_PATH)
 ENV['DATABASE_PATH'] = TEST_DB_PATH
 
-require_relative '../app'
+require_relative '../server'
 require 'rack/test'
 
 RSpec.configure do |config|

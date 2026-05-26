@@ -74,21 +74,28 @@ When deploying to Azure VM, make sure ports 3000 and 9090 are open in the VM NSG
 
 ```
 .
-├── app.rb              # Main Sinatra application
-├── config.ru           # Rack configuration
+├── backend/
+│   ├── server.rb       # Main Sinatra backend application
+│   ├── config.ru       # Rack configuration
+│   ├── openapi/
+│   │   └── api-schema.yaml # OpenAPI schema
+│   ├── database/
+│   │   ├── schema.sql      # SQLite schema (legacy)
+│   │   ├── schema.pg.sql   # PostgreSQL schema
+│   │   ├── seeds.sql       # Seed data
+│   │   ├── setup.rb        # SQLite setup script (legacy)
+│   │   └── migrate_sqlite_to_postgres.rb # One-time migration script
+│   └── spec/
+│       ├── app_spec.rb
+│       └── spec_helper.rb
+├── frontend/
+│   ├── templates/
+│   │   ├── layout.erb      # Base layout template
+│   │   ├── home.erb        # Home page template
+│   │   └── recipe_detail.erb  # Recipe detail template
+│   └── public/
+│       └── style.css       # Stylesheet
 ├── Gemfile             # Ruby dependencies
-├── db/
-│   ├── schema.sql      # SQLite schema (legacy)
-│   ├── schema.pg.sql   # PostgreSQL schema
-│   ├── seeds.sql       # Seed data
-│   ├── setup.rb        # SQLite setup script (legacy)
-│   └── migrate_sqlite_to_postgres.rb # One-time migration script
-├── views/
-│   ├── layout.erb      # Base layout template
-│   ├── home.erb        # Home page template
-│   └── recipe_detail.erb  # Recipe detail template
-└── static/
-    └── style.css       # Stylesheet
 ├── infrastructure/
 │   ├── azure-setup.sh  # Azure VM provisioning helper
 │   └── nginx/
@@ -178,7 +185,7 @@ DB_NAME=recipe_cookbook \
 DB_USER=recipe_user \
 DB_PASSWORD=recipe_pass \
 SQLITE_PATH=./app.db \
-ruby db/migrate_sqlite_to_postgres.rb
+ruby backend/database/migrate_sqlite_to_postgres.rb
 ```
 
 If the Postgres database already contains data, set `PG_CLEAR=true` to truncate tables before migrating.
