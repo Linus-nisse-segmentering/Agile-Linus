@@ -130,7 +130,8 @@ jobs:
 
             # Relay backend files to backend VM
             scp $SSH_OPTS ~/app/docker-compose.backend.yaml ${BACKEND_USER}@${BACKEND_HOST}:~/app/docker-compose.yaml || true
-            scp -r $SSH_OPTS ~/app/monitoring ${BACKEND_USER}@${BACKEND_HOST}:~/monitoring || true
+            # Copy monitoring contents (not the parent folder) to avoid ~/monitoring/monitoring nesting
+            scp -r $SSH_OPTS ~/app/monitoring/* ${BACKEND_USER}@${BACKEND_HOST}:~/monitoring/ || true
             scp $SSH_OPTS ~/app/image_latest.tar.gz ${BACKEND_USER}@${BACKEND_HOST}:~/app/image_latest.tar.gz || true
 
             # Run backend stack on backend VM
@@ -161,7 +162,12 @@ jobs:
             if [ -f ~/monitoring/docker-compose.yml ]; then
               cd ~/monitoring
               sudo docker compose pull || true
-              sudo docker compose up -d --wait --wait-timeout 180 || true
+              sudo docker compose up -d --force-recreate --wait --wait-timeout 180 || true
+            elif [ -f ~/monitoring/monitoring/docker-compose.yml ]; then
+              # Backward-compat cleanup if older runs created nested monitoring/monitoring
+              cd ~/monitoring/monitoring
+              sudo docker compose pull || true
+              sudo docker compose up -d --force-recreate --wait --wait-timeout 180 || true
             fi
             sudo docker image prune -f || true
             REMOTE
