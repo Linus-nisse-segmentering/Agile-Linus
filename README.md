@@ -166,3 +166,55 @@ docker compose -f monitoring/docker-compose.yml down
 │   └── prometheus.yml
 └── docs/                          # Projekt- og procesdokumentation
 ```
+
+## Web-ruter (HTML)
+
+- `GET /` viser alle opskrifter.
+- `GET /recipes/:id/` viser detaljesiden for en opskrift.
+- `GET /apidocs` viser Swagger UI.
+
+## API-ruter (JSON)
+
+### Overblik og schema
+
+- `GET /api`
+- `GET /api/schema`
+- `GET /metrics`
+
+### User
+
+- `POST /api/user/create/`
+- `GET /api/user/me/`
+- `PUT /api/user/me/`
+- `PATCH /api/user/me/`
+- `POST /api/user/token/`
+
+### Recipes
+
+- `GET /api/recipe/recipes/`
+- `POST /api/recipe/recipes/`
+- `GET /api/recipe/recipes/:id/`
+- `PUT /api/recipe/recipes/:id/`
+- `PATCH /api/recipe/recipes/:id/`
+- `DELETE /api/recipe/recipes/:id/`
+- `POST /api/recipe/recipes/:id/upload-image/`
+
+### Ingredients
+
+- `GET /api/recipe/ingredients/`
+- `PUT /api/recipe/ingredients/:id/`
+- `PATCH /api/recipe/ingredients/:id/`
+- `DELETE /api/recipe/ingredients/:id/`
+
+### Tags
+
+- `GET /api/recipe/tags/`
+- `PUT /api/recipe/tags/:id/`
+- `PATCH /api/recipe/tags/:id/`
+- `DELETE /api/recipe/tags/:id/`
+
+### Eksempel på API-kald
+
+```bash
+curl http://localhost/api/recipe/recipes/
+```
