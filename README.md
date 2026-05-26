@@ -1,7 +1,7 @@
 # Recipe Cookbook - Ruby/Sinatra Edition
 
 ![Quality Pipeline](https://github.com/Linus-nisse-segmentering/Agile-Linus/actions/workflows/quality.yml/badge.svg)
-![CD Pipeline](https://github.com/Linus-nisse-segmentering/Agile-Linus/actions/workflows/deploy-azure-vm.yml/badge.svg)
+![CD Pipeline (unstuck)](https://github.com/Linus-nisse-segmentering/Agile-Linus/actions/workflows/deploy-azure-vm-unstuck.yml/badge.svg)
 ![Linted with RuboCop](https://img.shields.io/badge/lint-RuboCop-black)
 ![Tested with RSpec](https://img.shields.io/badge/test-RSpec-red)
 
