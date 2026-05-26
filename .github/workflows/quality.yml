@@ -63,9 +63,11 @@ jobs:
 
       - name: Lint with RuboCop
         run: bundle exec rubocop
+        working-directory: backend
 
       - name: Run RSpec test suite
         run: bundle exec rspec --format progress
+        working-directory: backend
 
       - name: SonarCloud Scan
         if: env.SONAR_TOKEN != ''
