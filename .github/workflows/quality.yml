@@ -47,10 +47,12 @@ jobs:
         run: bundle install
 
       - name: Wait for Postgres
+        env:
+          PGPASSWORD: ${{ env.DB_PASSWORD }}
         run: |
           sudo apt-get update
           sudo apt-get install -y postgresql-client
-          until pg_isready -h localhost -p 5432 -U ${{ env.DB_USER }}; do sleep 1; done
+          until pg_isready -h localhost -p 5432 -U ${{ env.DB_USER }} -d ${{ env.DB_NAME }}; do sleep 1; done
 
       - name: Migrate SQLite -> Postgres
         env:
