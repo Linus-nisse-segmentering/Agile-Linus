@@ -4,5 +4,6 @@ global:
 scrape_configs:
   - job_name: "backend"
     static_configs:
-      - targets: ["nginx:80"]
+      # When deployed across VMs, scrape the backend app directly via private DNS
+      - targets: ["backend.backend.internal:1010"]
     metrics_path: /metrics
