@@ -252,8 +252,17 @@ get '/recipes/:id/' do
 end
 
 def swagger_ui_html
-  api_schema_url = request.base_url + '/api/schema'
+  api_schema_url = "#{request.base_url}/api/schema"
+  head = swagger_ui_head
+  body = swagger_ui_body(api_schema_url)
 
+  <<~HTML
+    #{head}
+    #{body}
+  HTML
+end
+
+def swagger_ui_head
   <<~HTML
     <!DOCTYPE html>
     <html lang="en">
@@ -268,6 +277,11 @@ def swagger_ui_html
         body { margin: 0; padding: 0; }
       </style>
     </head>
+  HTML
+end
+
+def swagger_ui_body(api_schema_url)
+  <<~HTML
     <body>
       <div id="swagger-ui"></div>
       <script src="/swagger-ui/swagger-ui-bundle.js"></script>
@@ -304,16 +318,16 @@ get '/api' do
   base_url = request.base_url
 
   json({
-         create_user_url: base_url + '/api/user/create/',
-         current_user_url: base_url + '/api/user/me/',
-         user_token_url: base_url + '/api/user/token/',
-         recipes_url: base_url + '/api/recipe/recipes/{?ingredients,tags}',
-         recipe_url: base_url + '/api/recipe/recipes/{id}/',
-         recipe_image_url: base_url + '/api/recipe/recipes/{id}/upload-image/',
-         ingredients_url: base_url + '/api/recipe/ingredients/{?assigned_only}',
-         ingredient_url: base_url + '/api/recipe/ingredients/{id}/',
-         tags_url: base_url + '/api/recipe/tags/{?assigned_only}',
-         tag_url: base_url + '/api/recipe/tags/{id}/',
+         create_user_url: "#{base_url}/api/user/create/",
+         current_user_url: "#{base_url}/api/user/me/",
+         user_token_url: "#{base_url}/api/user/token/",
+         recipes_url: "#{base_url}/api/recipe/recipes/{?ingredients,tags}",
+         recipe_url: "#{base_url}/api/recipe/recipes/{id}/",
+         recipe_image_url: "#{base_url}/api/recipe/recipes/{id}/upload-image/",
+         ingredients_url: "#{base_url}/api/recipe/ingredients/{?assigned_only}",
+         ingredient_url: "#{base_url}/api/recipe/ingredients/{id}/",
+         tags_url: "#{base_url}/api/recipe/tags/{?assigned_only}",
+         tag_url: "#{base_url}/api/recipe/tags/{id}/",
        })
 end
 
