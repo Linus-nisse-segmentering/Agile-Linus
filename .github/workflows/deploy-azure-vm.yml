@@ -123,27 +123,46 @@ jobs:
               printf '%s\n' "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
             fi
             chmod 600 ~/.ssh/deploy_key
-            SSH_OPTS="-o BatchMode=yes -o ConnectTimeout=20 -o ServerAliveInterval=15 -o ServerAliveCountMax=4 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ~/.ssh/deploy_key"
+            SSH_OPTS="-o BatchMode=yes -o ConnectTimeout=60 -o ServerAliveInterval=15 -o ServerAliveCountMax=4 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ~/.ssh/deploy_key"
 
             BACKEND_USER=${{ secrets.SSH_USER }}
             BACKEND_HOST=${{ secrets.BACKEND_HOST }}
 
+            retry_command() {
+              description="$1"
+              attempts="$2"
+              delay_seconds="$3"
+              shift 3
+
+              echo "$description"
+              attempt=1
+              while true; do
+                if "$@"; then
+                  return 0
+                fi
+                status=$?
+                if [ "$attempt" -ge "$attempts" ]; then
+                  echo "$description failed after $attempt attempts with exit code $status"
+                  return "$status"
+                fi
+                echo "$description failed on attempt $attempt; retrying in ${delay_seconds}s"
+                sleep "$delay_seconds"
+                attempt=$((attempt + 1))
+              done
+            }
+
             # Ensure relay targets exist before copying; scp fails if the remote directory is missing.
-            echo "Checking backend SSH connection and creating target directories"
-            timeout 90 ssh $SSH_OPTS ${BACKEND_USER}@${BACKEND_HOST} "mkdir -p ~/app ~/monitoring"
+            retry_command "Checking backend SSH connection and creating target directories" 5 20 timeout 180 ssh $SSH_OPTS ${BACKEND_USER}@${BACKEND_HOST} "mkdir -p ~/app ~/monitoring"
 
             # Relay backend files to backend VM
-            echo "Copying backend compose file"
-            timeout 120 scp $SSH_OPTS ~/app/docker-compose.backend.yaml ${BACKEND_USER}@${BACKEND_HOST}:~/app/docker-compose.yaml
+            retry_command "Copying backend compose file" 3 15 timeout 180 scp $SSH_OPTS ~/app/docker-compose.backend.yaml ${BACKEND_USER}@${BACKEND_HOST}:~/app/docker-compose.yaml
             # Copy monitoring contents (not the parent folder) to avoid ~/monitoring/monitoring nesting
-            echo "Copying monitoring files"
-            timeout 120 scp -r $SSH_OPTS ~/app/monitoring/* ${BACKEND_USER}@${BACKEND_HOST}:~/monitoring/
-            echo "Copying application image tar"
-            timeout 300 scp $SSH_OPTS ~/app/image_latest.tar.gz ${BACKEND_USER}@${BACKEND_HOST}:~/app/image_latest.tar.gz
+            retry_command "Copying monitoring files" 3 15 timeout 180 scp -r $SSH_OPTS ~/app/monitoring/* ${BACKEND_USER}@${BACKEND_HOST}:~/monitoring/
+            retry_command "Copying application image tar" 3 20 timeout 420 scp $SSH_OPTS ~/app/image_latest.tar.gz ${BACKEND_USER}@${BACKEND_HOST}:~/app/image_latest.tar.gz
 
             # Run backend stack on backend VM
             echo "Starting backend deployment over SSH"
-            timeout 900 ssh $SSH_OPTS ${BACKEND_USER}@${BACKEND_HOST} <<'REMOTE'
+            timeout 1200 ssh $SSH_OPTS ${BACKEND_USER}@${BACKEND_HOST} <<'REMOTE'
             set -e
             mkdir -p ~/app
             mkdir -p ~/monitoring
