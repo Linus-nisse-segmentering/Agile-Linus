@@ -367,7 +367,11 @@ else
     echo -e "${GREEN}✅ Backend VM created (no public IP)${NC}"
 fi
 
-BACKEND_PRIVATE_IP=$(az network nic show --resource-group "$RESOURCE_GROUP" --name "$BACKEND_NIC_NAME" --query "ipConfigurations[0].privateIpAddress" -o tsv)
+BACKEND_PRIVATE_IP=$(az network nic show --resource-group "$RESOURCE_GROUP" --name "$BACKEND_NIC_NAME" --query "ipConfigurations[0].privateIPAddress" -o tsv)
+if [ -z "$BACKEND_PRIVATE_IP" ]; then
+    echo -e "${RED}❌ Could not determine backend private IP from NIC $BACKEND_NIC_NAME${NC}"
+    exit 1
+fi
 echo "Backend private IP: $BACKEND_PRIVATE_IP"
 
 # Create Private DNS zone and link to VNet, add A record for backend
@@ -387,6 +391,7 @@ else
 fi
 
 # Create A record for backend
+az network private-dns record-set a delete --resource-group "$RESOURCE_GROUP" --zone-name "$PRIVATE_DNS_ZONE_NAME" --name "$PRIVATE_DNS_RECORD_NAME" --yes || true
 az network private-dns record-set a create --resource-group "$RESOURCE_GROUP" --zone-name "$PRIVATE_DNS_ZONE_NAME" --name "$PRIVATE_DNS_RECORD_NAME" --ttl 300 || true
 az network private-dns record-set a add-record --resource-group "$RESOURCE_GROUP" --zone-name "$PRIVATE_DNS_ZONE_NAME" --record-set-name "$PRIVATE_DNS_RECORD_NAME" --ipv4-address "$BACKEND_PRIVATE_IP" || true
 
@@ -433,7 +438,7 @@ az vm open-port \
     --priority 320 \
     --output table
 
-# Allow Postgres only from the app VM private IP
+# Allow Postgres only from the backend VM private IP
 DB_NIC_ID=$(az vm show \
     --resource-group "$RESOURCE_GROUP" \
     --name "$DB_VM_NAME" \
@@ -621,8 +626,8 @@ if [[ ! $REPLY =~ ^[Nn]$ ]]; then
         echo "Configuring PostgreSQL for remote access..."
         sudo sed -i "s/^#listen_addresses =.*/listen_addresses = '*'/" /etc/postgresql/*/main/postgresql.conf
 
-        echo "Allowing app VM to connect..."
-        echo "host    all             all             ${APP_PRIVATE_IP}/32            md5" | sudo tee -a /etc/postgresql/*/main/pg_hba.conf > /dev/null
+        echo "Allowing backend VM to connect..."
+        echo "host    all             all             ${BACKEND_PRIVATE_IP}/32            md5" | sudo tee -a /etc/postgresql/*/main/pg_hba.conf > /dev/null
 
         echo "Restarting PostgreSQL..."
         sudo systemctl restart postgresql
