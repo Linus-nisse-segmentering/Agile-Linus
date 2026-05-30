@@ -123,22 +123,27 @@ jobs:
               printf '%s\n' "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
             fi
             chmod 600 ~/.ssh/deploy_key
-            SSH_OPTS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ~/.ssh/deploy_key"
+            SSH_OPTS="-o BatchMode=yes -o ConnectTimeout=20 -o ServerAliveInterval=15 -o ServerAliveCountMax=4 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ~/.ssh/deploy_key"
 
             BACKEND_USER=${{ secrets.SSH_USER }}
             BACKEND_HOST=${{ secrets.BACKEND_HOST }}
 
             # Ensure relay targets exist before copying; scp fails if the remote directory is missing.
-            ssh $SSH_OPTS ${BACKEND_USER}@${BACKEND_HOST} "mkdir -p ~/app ~/monitoring"
+            echo "Checking backend SSH connection and creating target directories"
+            timeout 90 ssh $SSH_OPTS ${BACKEND_USER}@${BACKEND_HOST} "mkdir -p ~/app ~/monitoring"
 
             # Relay backend files to backend VM
-            scp $SSH_OPTS ~/app/docker-compose.backend.yaml ${BACKEND_USER}@${BACKEND_HOST}:~/app/docker-compose.yaml
+            echo "Copying backend compose file"
+            timeout 120 scp $SSH_OPTS ~/app/docker-compose.backend.yaml ${BACKEND_USER}@${BACKEND_HOST}:~/app/docker-compose.yaml
             # Copy monitoring contents (not the parent folder) to avoid ~/monitoring/monitoring nesting
-            scp -r $SSH_OPTS ~/app/monitoring/* ${BACKEND_USER}@${BACKEND_HOST}:~/monitoring/
-            scp $SSH_OPTS ~/app/image_latest.tar.gz ${BACKEND_USER}@${BACKEND_HOST}:~/app/image_latest.tar.gz
+            echo "Copying monitoring files"
+            timeout 120 scp -r $SSH_OPTS ~/app/monitoring/* ${BACKEND_USER}@${BACKEND_HOST}:~/monitoring/
+            echo "Copying application image tar"
+            timeout 300 scp $SSH_OPTS ~/app/image_latest.tar.gz ${BACKEND_USER}@${BACKEND_HOST}:~/app/image_latest.tar.gz
 
             # Run backend stack on backend VM
-            ssh $SSH_OPTS ${BACKEND_USER}@${BACKEND_HOST} <<'REMOTE'
+            echo "Starting backend deployment over SSH"
+            timeout 900 ssh $SSH_OPTS ${BACKEND_USER}@${BACKEND_HOST} <<'REMOTE'
             set -e
             mkdir -p ~/app
             mkdir -p ~/monitoring
@@ -172,34 +177,46 @@ jobs:
               sudo docker compose ps || true
             }
 
+            compose_pull_or_diagnose() {
+              project_dir="$1"
+
+              cd "$project_dir"
+              echo "Pulling Docker Compose images in $project_dir"
+              if ! timeout 300 sudo docker compose pull; then
+                echo "Docker Compose pull failed or timed out in $project_dir"
+                sudo docker compose ps || true
+                exit 1
+              fi
+            }
+
             cd ~/app
             # If an image tar was provided, load it to avoid GHCR auth issues
             if [ -f ~/app/image_latest.tar.gz ]; then
               echo "Loading application image from relay tar"
-              sudo docker load < ~/app/image_latest.tar.gz
+              timeout 300 sudo docker load < ~/app/image_latest.tar.gz
             else
               echo "No relay image found; pulling application image"
-              sudo docker compose pull
+              compose_pull_or_diagnose ~/app
             fi
             compose_up_or_diagnose ~/app 180
             # start monitoring if present
             if [ -f ~/monitoring/docker-compose.yml ]; then
-              cd ~/monitoring
-              sudo docker compose pull
+              compose_pull_or_diagnose ~/monitoring
               compose_up_or_diagnose ~/monitoring 180 --force-recreate
             elif [ -f ~/monitoring/monitoring/docker-compose.yml ]; then
               # Backward-compat cleanup if older runs created nested monitoring/monitoring
-              cd ~/monitoring/monitoring
-              sudo docker compose pull
+              compose_pull_or_diagnose ~/monitoring/monitoring
               compose_up_or_diagnose ~/monitoring/monitoring 180 --force-recreate
             fi
             sudo docker image prune -f || true
             REMOTE
+            echo "Backend deployment SSH command completed"
 
             # Apply nginx config and run nginx-only compose on public VM
+            echo "Starting public nginx deployment"
             printf '%s\n' "services:" "  nginx:" "    image: nginx:1.27-alpine" "    ports:" "      - \"80:80\"" "    volumes:" "      - ./infrastructure/nginx/default.conf:/etc/nginx/conf.d/default.conf" > ~/app/docker-compose.nginx.yaml
             cd ~/app
-            sudo docker compose -f docker-compose.nginx.yaml pull || true
+            timeout 180 sudo docker compose -f docker-compose.nginx.yaml pull
             if ! timeout 90 sudo docker compose -f docker-compose.nginx.yaml up -d --wait --wait-timeout 60; then
               echo "Nginx Compose stack did not become healthy"
               sudo docker compose -f docker-compose.nginx.yaml ps || true
