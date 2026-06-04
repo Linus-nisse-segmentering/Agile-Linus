@@ -13,6 +13,9 @@ LOG_FILE="$(dirname "$0")/setup.log"
 echo "--- Azure setup started at $(date) ---" > "$LOG_FILE"
 exec > >(tee -a "$LOG_FILE") 2>&1
 
+# Repo root (one level up from infrastructure/)
+REPO_ROOT=$(cd "$(dirname "$0")/.." && pwd)
+
 pause_on_exit() {
     echo "--- Azure setup ended at $(date) ---" | tee -a "$LOG_FILE"
     read -p "Press Enter to close this script..." -r
@@ -590,7 +593,8 @@ if [[ ! $REPLY =~ ^[Nn]$ ]]; then
         sudo apt install -y apt-transport-https ca-certificates curl software-properties-common
 
         echo "Adding Docker GPG key..."
-        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+        sudo install -d -m 0755 /usr/share/keyrings
+        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --batch --yes --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
 
         echo "Adding Docker repository..."
         echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
@@ -622,59 +626,147 @@ ENDSSH
     echo -e "${YELLOW}⚠️  Note: You need to logout and login again for docker group changes to take effect${NC}"
 fi
 
-# Install PostgreSQL on the DB VM
+## Ensure PostgreSQL is installed and configured on the DB VM (idempotent)
 echo ""
 echo "=========================================="
-echo "Installing PostgreSQL on DB VM"
+echo "Ensuring PostgreSQL on DB VM (idempotent)"
 echo "=========================================="
 
-# shellcheck disable=SC2087
-ssh -o StrictHostKeyChecking=no "$ADMIN_USERNAME@$DB_PUBLIC_IP" << ENDSSH
-    set -e
-    echo "Updating package index..."
-    sudo apt update
+# Run a robust, idempotent setup on the DB VM.
+ssh -o StrictHostKeyChecking=no "$ADMIN_USERNAME@$DB_PUBLIC_IP" "BACKEND_PRIVATE_IP='$BACKEND_PRIVATE_IP' DB_USER='$DB_USER' DB_PASSWORD='$DB_PASSWORD' DB_NAME='$DB_NAME' bash -s" << 'ENDSSH'
+set -e
+echo "Checking for existing PostgreSQL installation..."
+if ! command -v psql >/dev/null 2>&1; then
+    echo "PostgreSQL not found, installing..."
+    sudo apt update -y
+    sudo DEBIAN_FRONTEND=noninteractive apt install -y postgresql postgresql-contrib
+else
+    echo "PostgreSQL already installed"
+fi
 
-    echo "Installing PostgreSQL..."
-    sudo apt install -y postgresql postgresql-contrib
+# Locate the cluster config directory (e.g. /etc/postgresql/14/main)
+PG_CONF_DIR=$(ls -d /etc/postgresql/*/main 2>/dev/null | head -n1 || true)
+if [ -z "$PG_CONF_DIR" ]; then
+    echo "ERROR: Could not locate PostgreSQL configuration directory"
+    exit 1
+fi
 
-    echo "Configuring PostgreSQL for remote access..."
-    sudo sed -i "s/^#listen_addresses =.*/listen_addresses = '*'/'" /etc/postgresql/*/main/postgresql.conf
+echo "Config dir: $PG_CONF_DIR"
 
-    echo "Allowing backend VM to connect..."
-    echo "host    all             all             ${BACKEND_PRIVATE_IP}/32            md5" | sudo tee -a /etc/postgresql/*/main/pg_hba.conf > /dev/null
+# Ensure listen_addresses contains a value allowing remote connections
+if sudo grep -Eq "^listen_addresses[[:space:]]*=[[:space:]]*'\*'|^listen_addresses[[:space:]]*=[[:space:]]*\"\*\"" "$PG_CONF_DIR/postgresql.conf" 2>/dev/null; then
+    echo "listen_addresses already set"
+else
+    # If a commented listen_addresses exists, replace it; otherwise append
+    if sudo grep -q "^#listen_addresses" "$PG_CONF_DIR/postgresql.conf" 2>/dev/null; then
+        sudo sed -i "s/^#listen_addresses.*/listen_addresses = '*'/" "$PG_CONF_DIR/postgresql.conf" || true
+    else
+        echo "listen_addresses = '*'" | sudo tee -a "$PG_CONF_DIR/postgresql.conf" > /dev/null
+    fi
+fi
 
-    echo "Restarting PostgreSQL..."
-    sudo systemctl restart postgresql
+# Ensure backend IP is allowed in pg_hba.conf
+HBA_ENTRY="host    all             all             ${BACKEND_PRIVATE_IP}/32            md5"
+if sudo grep -Fq "${BACKEND_PRIVATE_IP}/32" "$PG_CONF_DIR/pg_hba.conf" 2>/dev/null; then
+    echo "pg_hba already allows backend IP"
+else
+    echo "Adding pg_hba entry for backend IP: ${BACKEND_PRIVATE_IP}"
+    echo "$HBA_ENTRY" | sudo tee -a "$PG_CONF_DIR/pg_hba.conf" > /dev/null
+fi
 
-    echo "Creating database and user..."
-    sudo -u postgres psql -v ON_ERROR_STOP=1 << SQL
-DO $$
-BEGIN
-    IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = '${DB_USER}') THEN
-        CREATE ROLE ${DB_USER} LOGIN PASSWORD '${DB_PASSWORD}';
-    END IF;
-END
-$$;
+echo "Restarting PostgreSQL to apply configuration..."
+sudo systemctl restart postgresql
 
-DO $$
-BEGIN
-    IF NOT EXISTS (SELECT FROM pg_database WHERE datname = '${DB_NAME}') THEN
-        CREATE DATABASE ${DB_NAME};
-    END IF;
-END
-$$;
+if ! sudo systemctl is-active --quiet postgresql; then
+    echo "ERROR: PostgreSQL service is not active"
+    sudo systemctl status postgresql --no-pager || true
+    exit 1
+fi
 
-GRANT ALL PRIVILEGES ON DATABASE ${DB_NAME} TO ${DB_USER};
-SQL
+# Create database user and database if missing
+echo "Ensuring database and user exist..."
+if sudo -u postgres psql -tAc "SELECT 1 FROM pg_roles WHERE rolname='${DB_USER}'" | grep -q 1; then
+    echo "User ${DB_USER} exists"
+else
+    echo "Creating user ${DB_USER}"
+    sudo -u postgres psql -c "CREATE ROLE ${DB_USER} LOGIN PASSWORD '${DB_PASSWORD}';"
+fi
 
-    sudo -u postgres psql -d "${DB_NAME}" -v ON_ERROR_STOP=1 << SQL
-GRANT USAGE, CREATE ON SCHEMA public TO ${DB_USER};
-SQL
+if sudo -u postgres psql -lqt | cut -d '|' -f 1 | awk '{print $1}' | grep -qw "${DB_NAME}"; then
+    echo "Database ${DB_NAME} exists"
+else
+    echo "Creating database ${DB_NAME}"
+    sudo -u postgres psql -c "CREATE DATABASE ${DB_NAME};"
+fi
 
-    echo "PostgreSQL installation complete."
+echo "Granting privileges on database to user"
+sudo -u postgres psql -d "${DB_NAME}" -c "GRANT ALL PRIVILEGES ON DATABASE ${DB_NAME} TO ${DB_USER};" || true
+sudo -u postgres psql -d "${DB_NAME}" -c "GRANT USAGE, CREATE ON SCHEMA public TO ${DB_USER};" || true
+
+echo "PostgreSQL ensured and configured."
 ENDSSH
 
-echo -e "${GREEN}✅ PostgreSQL installed and configured${NC}"
+echo -e "${GREEN}✅ PostgreSQL ensured and configured${NC}"
+
+# Apply schema and seeds from repository to the remote Postgres (idempotent)
+echo "\nApplying DB schema and seeds (idempotent)..."
+SCHEMA_FILE="$REPO_ROOT/backend/database/schema.pg.sql"
+SEEDS_FILE="$REPO_ROOT/backend/database/seeds.sql"
+
+if [ -f "$SCHEMA_FILE" ]; then
+        echo "Uploading and applying schema: $SCHEMA_FILE"
+        if ssh -o StrictHostKeyChecking=no "$ADMIN_USERNAME@$DB_PUBLIC_IP" "sudo -u postgres psql -d ${DB_NAME} -f -" < "$SCHEMA_FILE"; then
+                echo "Schema applied (or existing objects skipped)"
+        else
+                echo "Warning: schema apply returned non-zero (continuing)"
+        fi
+else
+        echo "Schema file not found at $SCHEMA_FILE, skipping schema apply"
+fi
+
+if [ -f "$SEEDS_FILE" ]; then
+        echo "Uploading and applying seeds: $SEEDS_FILE"
+        if ssh -o StrictHostKeyChecking=no "$ADMIN_USERNAME@$DB_PUBLIC_IP" "sudo -u postgres psql -d ${DB_NAME} -f -" < "$SEEDS_FILE"; then
+                echo "Seeds applied"
+        else
+                echo "Warning: seeds apply returned non-zero (continuing)"
+        fi
+else
+        echo "Seeds file not found at $SEEDS_FILE, skipping seeds apply"
+fi
+
+# Ensure recipe_user owns the public schema objects to avoid ownership errors
+echo "Fixing ownership of public schema objects to ${DB_USER}..."
+ssh -o StrictHostKeyChecking=no "$ADMIN_USERNAME@$DB_PUBLIC_IP" bash -s <<'EOF'
+sudo -u postgres psql -d "${DB_NAME}" <<'SQL'
+DO $$
+DECLARE r RECORD;
+BEGIN
+    FOR r IN SELECT tablename FROM pg_tables WHERE schemaname = 'public' LOOP
+        BEGIN
+            EXECUTE format('ALTER TABLE public.%I OWNER TO %I;', r.tablename, '${DB_USER}');
+        EXCEPTION WHEN others THEN
+            RAISE NOTICE 'Could not change owner for table %', r.tablename;
+        END;
+    END LOOP;
+    FOR r IN SELECT sequence_name FROM information_schema.sequences WHERE sequence_schema = 'public' LOOP
+        BEGIN
+            EXECUTE format('ALTER SEQUENCE public.%I OWNER TO %I;', r.sequence_name, '${DB_USER}');
+        EXCEPTION WHEN others THEN
+            RAISE NOTICE 'Could not change owner for sequence %', r.sequence_name;
+        END;
+    END LOOP;
+    BEGIN
+        EXECUTE format('ALTER SCHEMA public OWNER TO %I;', '${DB_USER}');
+    EXCEPTION WHEN others THEN
+        RAISE NOTICE 'Could not change owner for schema public';
+    END;
+END
+$$;
+SQL
+EOF
+
+echo "Ownership fix complete."
 
 # Set VM IP in GitHub secrets
 echo ""
@@ -739,6 +831,8 @@ else
     echo "$DB_NAME" | gh secret set DB_NAME
     echo "$DB_USER" | gh secret set DB_USER
     echo "$DB_PASSWORD" | gh secret set DB_PASSWORD
+    # Avoid app container re-running DB_INIT: set to false by default
+    echo "false" | gh secret set DB_INIT
     # Set backend host/port so deploy workflow can point nginx at the correct backend
     echo "$BACKEND_PRIVATE_IP" | gh secret set BACKEND_HOST
     echo "1010" | gh secret set BACKEND_PORT
