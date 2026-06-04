@@ -653,6 +653,10 @@ $$;
 GRANT ALL PRIVILEGES ON DATABASE ${DB_NAME} TO ${DB_USER};
 SQL
 
+        sudo -u postgres psql -d "${DB_NAME}" -v ON_ERROR_STOP=1 << SQL
+GRANT USAGE, CREATE ON SCHEMA public TO ${DB_USER};
+SQL
+
         echo "PostgreSQL installation complete."
 ENDSSH
 
