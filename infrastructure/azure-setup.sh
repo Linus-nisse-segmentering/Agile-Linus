@@ -621,8 +621,8 @@ if [[ ! $REPLY =~ ^[Nn]$ ]]; then
         echo "Configuring PostgreSQL for remote access..."
         sudo sed -i "s/^#listen_addresses =.*/listen_addresses = '*'/" /etc/postgresql/*/main/postgresql.conf
 
-        echo "Allowing app VM to connect..."
-        echo "host    all             all             ${APP_PRIVATE_IP}/32            md5" | sudo tee -a /etc/postgresql/*/main/pg_hba.conf > /dev/null
+        echo "Allowing backend VM to connect..."
+        echo "host    all             all             ${BACKEND_PRIVATE_IP}/32            md5" | sudo tee -a /etc/postgresql/*/main/pg_hba.conf > /dev/null
 
         echo "Restarting PostgreSQL..."
         sudo systemctl restart postgresql
@@ -646,6 +646,10 @@ END
 $$;
 
 GRANT ALL PRIVILEGES ON DATABASE ${DB_NAME} TO ${DB_USER};
+SQL
+
+        sudo -u postgres psql -d "${DB_NAME}" -v ON_ERROR_STOP=1 << SQL
+GRANT USAGE, CREATE ON SCHEMA public TO ${DB_USER};
 SQL
 
         echo "PostgreSQL installation complete."
