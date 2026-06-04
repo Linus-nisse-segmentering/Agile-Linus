@@ -115,14 +115,13 @@ jobs:
 
             # Write deploy key on public VM so it can SSH/SCP to the backend VM
             mkdir -p ~/.ssh
-            # Prefer a base64-encoded secret to preserve newlines reliably.
-            if [ -n "${{ secrets.BACKEND_SSH_PRIVATE_KEY_B64 }}" ]; then
-              echo "${{ secrets.BACKEND_SSH_PRIVATE_KEY_B64 }}" | base64 --decode > ~/.ssh/deploy_key
-            else
-              # Fallback: write raw private key secret (must include newlines exactly)
-              printf '%s\n' "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+            if [ -z "${{ secrets.BACKEND_SSH_PRIVATE_KEY_B64 }}" ]; then
+              echo "::error::Missing BACKEND_SSH_PRIVATE_KEY_B64 secret. Run infrastructure/azure-setup.sh or add a base64-encoded private key that matches the backend VM authorized key."
+              exit 1
             fi
+            echo "${{ secrets.BACKEND_SSH_PRIVATE_KEY_B64 }}" | base64 --decode > ~/.ssh/deploy_key
             chmod 600 ~/.ssh/deploy_key
+            ssh-keygen -y -f ~/.ssh/deploy_key >/dev/null
             SSH_OPTS="-o BatchMode=yes -o ConnectTimeout=60 -o ServerAliveInterval=15 -o ServerAliveCountMax=4 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ~/.ssh/deploy_key"
 
             BACKEND_USER=${{ secrets.SSH_USER }}

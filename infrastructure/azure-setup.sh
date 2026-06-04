@@ -714,6 +714,11 @@ else
     
     # Set SSH_PRIVATE_KEY secret
     gh secret set SSH_PRIVATE_KEY < "$SSH_PRIVATE_KEY_PATH"
+    if base64 --help 2>&1 | grep -q -- '-w'; then
+        base64 -w 0 "$SSH_PRIVATE_KEY_PATH" | gh secret set BACKEND_SSH_PRIVATE_KEY_B64
+    else
+        base64 "$SSH_PRIVATE_KEY_PATH" | tr -d '\n' | gh secret set BACKEND_SSH_PRIVATE_KEY_B64
+    fi
 
     # Set DB connection secrets
     echo "$DB_PRIVATE_IP" | gh secret set DB_HOST
