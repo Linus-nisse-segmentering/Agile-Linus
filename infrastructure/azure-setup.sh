@@ -60,7 +60,7 @@ BACKEND_VM_NAME="recipe-cookbook-backend-vm"
 BACKEND_NIC_NAME="${BACKEND_VM_NAME}-nic"
 BACKEND_NSG_NAME="${BACKEND_VM_NAME}-nsg"
 BACKEND_VM_SIZE="Standard_B1s"
-BACKEND_DEPLOY_KEY_PATH="$HOME/.ssh/deploy_key"
+BACKEND_DEPLOY_KEY_PATH="$HOME/.ssh/agile_linus_backend_deploy_key"
 BACKEND_DEPLOY_KEY_PUBLIC_PATH="${BACKEND_DEPLOY_KEY_PATH}.pub"
 
 # Private DNS (internal name for backend)
@@ -536,7 +536,7 @@ VM_IP=$(az vm show \
 
 echo -e "${GREEN}✅ VM is ready!${NC}"
 echo ""
-echo "VM Public IP: ${GREEN}$VM_IP${NC}"
+echo "VM Public IP: ${GREEN}${VM_IP}${NC}"
 echo "SSH command: ${YELLOW}ssh $ADMIN_USERNAME@$VM_IP${NC}"
 
 # Wait for VM to be fully ready
