@@ -122,7 +122,13 @@ jobs:
             echo "${{ secrets.BACKEND_SSH_PRIVATE_KEY_B64 }}" | base64 --decode > ~/.ssh/deploy_key
             chmod 600 ~/.ssh/deploy_key
             echo "Backend relay key fingerprint:"
-            ssh-keygen -y -f ~/.ssh/deploy_key | ssh-keygen -lf -
+            DEPLOY_KEY_FINGERPRINT="$(ssh-keygen -y -f ~/.ssh/deploy_key | ssh-keygen -lf - | awk '{print $2}')"
+            echo "$DEPLOY_KEY_FINGERPRINT"
+            EXPECTED_DEPLOY_KEY_FINGERPRINT="${{ secrets.BACKEND_SSH_KEY_FINGERPRINT }}"
+            if [ -n "$EXPECTED_DEPLOY_KEY_FINGERPRINT" ] && [ "$DEPLOY_KEY_FINGERPRINT" != "$EXPECTED_DEPLOY_KEY_FINGERPRINT" ]; then
+              echo "::error::BACKEND_SSH_PRIVATE_KEY_B64 does not match BACKEND_SSH_KEY_FINGERPRINT. Update the backend SSH secrets from infrastructure/azure-setup.sh."
+              exit 1
+            fi
             SSH_OPTS="-o BatchMode=yes -o ConnectTimeout=60 -o ServerAliveInterval=15 -o ServerAliveCountMax=4 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ~/.ssh/deploy_key"
 
             BACKEND_USER=${{ secrets.SSH_USER }}
@@ -137,10 +143,13 @@ jobs:
               echo "$description"
               attempt=1
               while true; do
-                if "$@"; then
+                set +e
+                "$@"
+                status=$?
+                set -e
+                if [ "$status" -eq 0 ]; then
                   return 0
                 fi
-                status=$?
                 if [ "$attempt" -ge "$attempts" ]; then
                   echo "$description failed after $attempt attempts with exit code $status"
                   return "$status"

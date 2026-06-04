@@ -746,6 +746,7 @@ else
     else
         base64 "$BACKEND_DEPLOY_KEY_PATH" | tr -d '\n' | gh secret set BACKEND_SSH_PRIVATE_KEY_B64
     fi
+    ssh-keygen -lf "$BACKEND_DEPLOY_KEY_PUBLIC_PATH" | awk '{print $2}' | gh secret set BACKEND_SSH_KEY_FINGERPRINT
 
     # Set DB connection secrets
     echo "$DB_PRIVATE_IP" | gh secret set DB_HOST
