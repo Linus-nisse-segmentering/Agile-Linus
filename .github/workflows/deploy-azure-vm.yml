@@ -121,7 +121,8 @@ jobs:
             fi
             echo "${{ secrets.BACKEND_SSH_PRIVATE_KEY_B64 }}" | base64 --decode > ~/.ssh/deploy_key
             chmod 600 ~/.ssh/deploy_key
-            ssh-keygen -y -f ~/.ssh/deploy_key >/dev/null
+            echo "Backend relay key fingerprint:"
+            ssh-keygen -y -f ~/.ssh/deploy_key | ssh-keygen -lf -
             SSH_OPTS="-o BatchMode=yes -o ConnectTimeout=60 -o ServerAliveInterval=15 -o ServerAliveCountMax=4 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ~/.ssh/deploy_key"
 
             BACKEND_USER=${{ secrets.SSH_USER }}

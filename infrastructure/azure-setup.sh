@@ -60,6 +60,8 @@ BACKEND_VM_NAME="recipe-cookbook-backend-vm"
 BACKEND_NIC_NAME="${BACKEND_VM_NAME}-nic"
 BACKEND_NSG_NAME="${BACKEND_VM_NAME}-nsg"
 BACKEND_VM_SIZE="Standard_B1s"
+BACKEND_DEPLOY_KEY_PATH="$HOME/.ssh/agile_linus_backend_deploy_key"
+BACKEND_DEPLOY_KEY_PUBLIC_PATH="${BACKEND_DEPLOY_KEY_PATH}.pub"
 
 # Private DNS (internal name for backend)
 PRIVATE_DNS_ZONE_NAME="backend.internal"
@@ -123,6 +125,19 @@ else
         ssh-keygen -t rsa -b 4096 -f "$SSH_PRIVATE_KEY_PATH" -N "" -C "azure-vm-cicd"
         echo -e "${GREEN}✅ RSA SSH key generated at $SSH_KEY_PATH${NC}"
     fi
+fi
+
+echo ""
+if [ ! -f "$BACKEND_DEPLOY_KEY_PATH" ]; then
+    echo "Generating backend relay deploy key at $BACKEND_DEPLOY_KEY_PATH..."
+    ssh-keygen -t rsa -b 4096 -f "$BACKEND_DEPLOY_KEY_PATH" -N "" -C "agile-linus-backend-relay"
+    echo -e "${GREEN}âœ… Backend relay deploy key generated${NC}"
+elif [ ! -f "$BACKEND_DEPLOY_KEY_PUBLIC_PATH" ]; then
+    echo "Recreating missing backend relay public key..."
+    ssh-keygen -y -f "$BACKEND_DEPLOY_KEY_PATH" > "$BACKEND_DEPLOY_KEY_PUBLIC_PATH"
+    echo -e "${GREEN}âœ… Backend relay public key recreated${NC}"
+else
+    echo -e "${GREEN}âœ… Backend relay deploy key found at $BACKEND_DEPLOY_KEY_PATH${NC}"
 fi
 
 # Create resource group
@@ -360,12 +375,20 @@ else
         --image "Canonical:0001-com-ubuntu-server-jammy:22_04-lts:latest" \
         --size "$BACKEND_VM_SIZE" \
         --admin-username "$ADMIN_USERNAME" \
-        --ssh-key-values "$(cat "$SSH_KEY_PATH")" \
+        --ssh-key-values "$(cat "$SSH_KEY_PATH")" "$(cat "$BACKEND_DEPLOY_KEY_PUBLIC_PATH")" \
         --public-ip-address "" \
         --output table
 
     echo -e "${GREEN}✅ Backend VM created (no public IP)${NC}"
 fi
+
+echo "Ensuring backend relay deploy key is authorized on backend VM..."
+az vm user update \
+    --resource-group "$RESOURCE_GROUP" \
+    --name "$BACKEND_VM_NAME" \
+    --username "$ADMIN_USERNAME" \
+    --ssh-key-value "$(cat "$BACKEND_DEPLOY_KEY_PUBLIC_PATH")" \
+    --output table
 
 BACKEND_PRIVATE_IP=$(az network nic show --resource-group "$RESOURCE_GROUP" --name "$BACKEND_NIC_NAME" --query "ipConfigurations[0].privateIPAddress" -o tsv)
 if [ -z "$BACKEND_PRIVATE_IP" ]; then
@@ -689,6 +712,7 @@ if ! command -v gh &> /dev/null; then
     echo "   SSH_USER = $ADMIN_USERNAME"
     echo "   SSH_HOST = $VM_IP"
     echo "   SSH_PRIVATE_KEY = Contents of ~/.ssh/id_rsa"
+    echo "   BACKEND_SSH_PRIVATE_KEY_B64 = base64 of $BACKEND_DEPLOY_KEY_PATH"
     echo "   DB_HOST = $DB_PRIVATE_IP" 
     echo "   DB_PORT = 5432" 
     echo "   DB_NAME = $DB_NAME" 
@@ -696,6 +720,9 @@ if ! command -v gh &> /dev/null; then
     echo "   DB_PASSWORD = $DB_PASSWORD" 
     echo ""
     echo "3. Or install GitHub CLI and run this script from your repository directory"
+    echo ""
+    echo "PowerShell helper for the backend relay key:"
+    echo "   [Convert]::ToBase64String([IO.File]::ReadAllBytes(\"$BACKEND_DEPLOY_KEY_PATH\")) | gh secret set BACKEND_SSH_PRIVATE_KEY_B64"
 else
     # Check if authenticated with GitHub CLI
     if ! gh auth status &> /dev/null; then
@@ -715,9 +742,9 @@ else
     # Set SSH_PRIVATE_KEY secret
     gh secret set SSH_PRIVATE_KEY < "$SSH_PRIVATE_KEY_PATH"
     if base64 --help 2>&1 | grep -q -- '-w'; then
-        base64 -w 0 "$SSH_PRIVATE_KEY_PATH" | gh secret set BACKEND_SSH_PRIVATE_KEY_B64
+        base64 -w 0 "$BACKEND_DEPLOY_KEY_PATH" | gh secret set BACKEND_SSH_PRIVATE_KEY_B64
     else
-        base64 "$SSH_PRIVATE_KEY_PATH" | tr -d '\n' | gh secret set BACKEND_SSH_PRIVATE_KEY_B64
+        base64 "$BACKEND_DEPLOY_KEY_PATH" | tr -d '\n' | gh secret set BACKEND_SSH_PRIVATE_KEY_B64
     fi
 
     # Set DB connection secrets
