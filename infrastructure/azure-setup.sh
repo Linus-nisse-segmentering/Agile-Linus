@@ -60,7 +60,7 @@ BACKEND_VM_NAME="recipe-cookbook-backend-vm"
 BACKEND_NIC_NAME="${BACKEND_VM_NAME}-nic"
 BACKEND_NSG_NAME="${BACKEND_VM_NAME}-nsg"
 BACKEND_VM_SIZE="Standard_B1s"
-BACKEND_DEPLOY_KEY_PATH="$HOME/.ssh/agile_linus_backend_deploy_key"
+BACKEND_DEPLOY_KEY_PATH="$HOME/.ssh/deploy_key"
 BACKEND_DEPLOY_KEY_PUBLIC_PATH="${BACKEND_DEPLOY_KEY_PATH}.pub"
 
 # Private DNS (internal name for backend)
@@ -629,34 +629,30 @@ fi
 
 # Install PostgreSQL on the DB VM
 echo ""
-read -p "Do you want to install PostgreSQL on the DB VM now? (Y/n): " -n 1 -r
-echo
-if [[ ! $REPLY =~ ^[Nn]$ ]]; then
-    echo ""
-    echo "=========================================="
-    echo "Installing PostgreSQL on DB VM"
-    echo "=========================================="
+echo "=========================================="
+echo "Installing PostgreSQL on DB VM"
+echo "=========================================="
 
-    # shellcheck disable=SC2087
-    ssh -o StrictHostKeyChecking=no "$ADMIN_USERNAME@$DB_PUBLIC_IP" << ENDSSH
-        set -e
-        echo "Updating package index..."
-        sudo apt update
+# shellcheck disable=SC2087
+ssh -o StrictHostKeyChecking=no "$ADMIN_USERNAME@$DB_PUBLIC_IP" << ENDSSH
+    set -e
+    echo "Updating package index..."
+    sudo apt update
 
-        echo "Installing PostgreSQL..."
-        sudo apt install -y postgresql postgresql-contrib
+    echo "Installing PostgreSQL..."
+    sudo apt install -y postgresql postgresql-contrib
 
-        echo "Configuring PostgreSQL for remote access..."
-        sudo sed -i "s/^#listen_addresses =.*/listen_addresses = '*'/" /etc/postgresql/*/main/postgresql.conf
+    echo "Configuring PostgreSQL for remote access..."
+    sudo sed -i "s/^#listen_addresses =.*/listen_addresses = '*'/'" /etc/postgresql/*/main/postgresql.conf
 
-        echo "Allowing backend VM to connect..."
-        echo "host    all             all             ${BACKEND_PRIVATE_IP}/32            md5" | sudo tee -a /etc/postgresql/*/main/pg_hba.conf > /dev/null
+    echo "Allowing backend VM to connect..."
+    echo "host    all             all             ${BACKEND_PRIVATE_IP}/32            md5" | sudo tee -a /etc/postgresql/*/main/pg_hba.conf > /dev/null
 
-        echo "Restarting PostgreSQL..."
-        sudo systemctl restart postgresql
+    echo "Restarting PostgreSQL..."
+    sudo systemctl restart postgresql
 
-        echo "Creating database and user..."
-        sudo -u postgres psql -v ON_ERROR_STOP=1 << SQL
+    echo "Creating database and user..."
+    sudo -u postgres psql -v ON_ERROR_STOP=1 << SQL
 DO $$
 BEGIN
     IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = '${DB_USER}') THEN
@@ -676,15 +672,14 @@ $$;
 GRANT ALL PRIVILEGES ON DATABASE ${DB_NAME} TO ${DB_USER};
 SQL
 
-        sudo -u postgres psql -d "${DB_NAME}" -v ON_ERROR_STOP=1 << SQL
+    sudo -u postgres psql -d "${DB_NAME}" -v ON_ERROR_STOP=1 << SQL
 GRANT USAGE, CREATE ON SCHEMA public TO ${DB_USER};
 SQL
 
-        echo "PostgreSQL installation complete."
+    echo "PostgreSQL installation complete."
 ENDSSH
 
-    echo -e "${GREEN}✅ PostgreSQL installed and configured${NC}"
-fi
+echo -e "${GREEN}✅ PostgreSQL installed and configured${NC}"
 
 # Set VM IP in GitHub secrets
 echo ""
